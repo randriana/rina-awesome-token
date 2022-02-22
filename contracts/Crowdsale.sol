@@ -5,6 +5,7 @@ import "@openzeppelin/contracts/utils/Context.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "./RinaAwesomeToken.sol";
 
 import "hardhat/console.sol";
 
@@ -25,7 +26,7 @@ contract Crowdsale is Context, ReentrancyGuard {
     using SafeERC20 for IERC20;
 
     // The token being sold
-    IERC20 private _token;
+    RinaAwesomeToken private _token;
 
     // Address where funds are collected
     address payable private _wallet;
@@ -41,12 +42,11 @@ contract Crowdsale is Context, ReentrancyGuard {
 
     /**
      * Event for token purchase logging
-     * @param purchaser who paid for the tokens
-     * @param beneficiary who got the tokens
+     * @param purchaser who paid for the tokens     
      * @param value weis paid for purchase
      * @param amount amount of tokens purchased
      */
-    event TokensPurchased(address indexed purchaser, address indexed beneficiary, uint256 value, uint256 amount);
+    event TokensMinted(address indexed purchaser, uint256 value, uint256 amount);
 
     /**
      * @param rate Number of token units a buyer gets per wei
@@ -56,7 +56,7 @@ contract Crowdsale is Context, ReentrancyGuard {
      * @param wallet Address where collected funds will be forwarded to
      * @param token Address of the token being sold
      */
-    constructor (uint256 rate, address payable wallet, IERC20 token) public {
+    constructor (uint256 rate, address payable wallet, RinaAwesomeToken token) public {
         require(rate > 0, "Crowdsale: rate is 0");
         require(wallet != address(0), "Crowdsale: wallet is the zero address");
         require(address(token) != address(0), "Crowdsale: token is the zero address");
@@ -117,8 +117,8 @@ contract Crowdsale is Context, ReentrancyGuard {
         // update state
         _weiRaised = _weiRaised.add(weiAmount);
 
-        _processPurchase(beneficiary, tokens);
-        emit TokensPurchased(_msgSender(), beneficiary, weiAmount, tokens);
+        _mint(beneficiary, tokens);
+        emit TokensMinted(_msgSender(), weiAmount, tokens);
 
         _updatePurchasingState(beneficiary, weiAmount);
 
@@ -152,26 +152,6 @@ contract Crowdsale is Context, ReentrancyGuard {
     }
 
     /**
-     * @dev Source of tokens. Override this method to modify the way in which the crowdsale ultimately gets and sends
-     * its tokens.
-     * @param beneficiary Address performing the token purchase
-     * @param tokenAmount Number of tokens to be emitted
-     */
-    function _deliverTokens(address beneficiary, uint256 tokenAmount) internal virtual{
-        _token.safeTransfer(beneficiary, tokenAmount);
-    }
-
-    /**
-     * @dev Executed when a purchase has been validated and is ready to be executed. Doesn't necessarily emit/send
-     * tokens.
-     * @param beneficiary Address receiving the tokens
-     * @param tokenAmount Number of tokens to be purchased
-     */
-    function _processPurchase(address beneficiary, uint256 tokenAmount) internal virtual {
-        _deliverTokens(beneficiary, tokenAmount);
-    }
-
-    /**
      * @dev Override for extensions that require an internal state to check for validity (current user contributions,
      * etc.)
      * @param beneficiary Address receiving the tokens
@@ -195,5 +175,9 @@ contract Crowdsale is Context, ReentrancyGuard {
      */
     function _forwardFunds() internal {
         _wallet.transfer(msg.value);
+    }
+
+    function _mint(address to, uint256 tokenAmount) private {
+        _token.mint(to, tokenAmount);
     }
 }
