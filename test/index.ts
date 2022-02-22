@@ -41,7 +41,7 @@ describe("Crowdsale", () => {
   const treasuryAccount = {
     address: "0x14701438d1e2A4BE2578158D26F027ea4e99dA6c",
   };
-  const crowdsaleRate = 1;
+  const crowdsaleRate = 100;
 
   beforeEach(async () => {
     const Token = await ethers.getContractFactory("RinaAwesomeToken");
@@ -77,14 +77,14 @@ describe("Crowdsale", () => {
     });
 
     it("Owner should receive correct amount of tokens", async () => {
-      await crowdsale.buyTokens(owner.address, { value: 99 });
-      expect(await token.balanceOf(owner.address)).to.equal(99);
+      await crowdsale.buyTokens(owner.address, { value: 1 });
+      expect(await token.balanceOf(owner.address)).to.equal(100);
     });
 
     it("Treasury should receive correct amount of ether", async () => {
       expect(
         await ethers.provider.getBalance(treasuryAccount.address)
-      ).to.equal(99);
+      ).to.equal(1);
     });
   });
 });

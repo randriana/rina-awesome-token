@@ -16,7 +16,7 @@ async function main() {
 
   const Crowdsale = await ethers.getContractFactory("Crowdsale");
   const crowdsale = await Crowdsale.deploy(
-    1,
+    100,
     accounts[1].address,
     token.address
   );
