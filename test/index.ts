@@ -22,7 +22,7 @@ describe("Token", function () {
     expect(await token.name()).to.equal("Awesome Coin");
     expect(await token.symbol()).to.equal("AWEC");
     expect(await token.decimals()).to.equal(18);
-    expect(await token.totalSupply()).to.equal(1);
+    expect(await token.totalSupply()).to.equal(ethers.utils.parseEther("1"));
   });
 
   it("Should mint correct amount to beneficiary", async () => {
@@ -80,14 +80,18 @@ describe("Crowdsale", () => {
     });
 
     it("Owner should receive correct amount of tokens", async () => {
-      await crowdsale.buyTokens(owner.address, { value: 1 });
-      expect(await token.balanceOf(owner.address)).to.equal(11);
+      await crowdsale.buyTokens(owner.address, {
+        value: ethers.utils.parseEther("1").toString(),
+      });
+      expect(await token.balanceOf(owner.address)).to.equal(
+        ethers.utils.parseEther("11")
+      );
     });
 
     it("Treasury should receive correct amount of ether", async () => {
       expect(
         await ethers.provider.getBalance(treasuryAccount.address)
-      ).to.equal(1);
+      ).to.equal(ethers.utils.parseEther("1"));
     });
   });
 });
