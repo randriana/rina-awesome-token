@@ -5,7 +5,7 @@ import "@openzeppelin/contracts/utils/Context.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "./RinaAwesomeToken.sol";
+import "./Token.sol";
 
 import "hardhat/console.sol";
 
@@ -26,7 +26,7 @@ contract Crowdsale is Context, ReentrancyGuard {
     using SafeERC20 for IERC20;
 
     // The token being sold
-    RinaAwesomeToken private _token;
+    Token private _token;
 
     // Address where funds are collected
     address payable private _wallet;
@@ -56,7 +56,7 @@ contract Crowdsale is Context, ReentrancyGuard {
      * @param wallet Address where collected funds will be forwarded to
      * @param token Address of the token being sold
      */
-    constructor (uint256 rate, address payable wallet, RinaAwesomeToken token) public {
+    constructor (uint256 rate, address payable wallet, Token token) public {
         require(rate > 0, "Crowdsale: rate is 0");
         require(wallet != address(0), "Crowdsale: wallet is the zero address");
         require(address(token) != address(0), "Crowdsale: token is the zero address");

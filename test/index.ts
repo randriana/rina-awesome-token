@@ -1,16 +1,16 @@
 import { expect } from "chai";
 import { ethers } from "hardhat";
-import { Crowdsale, RinaAwesomeToken } from "../typechain";
+import { Crowdsale, Token } from "../typechain";
 
-describe("Rina Awesome Token", function () {
-  let token: RinaAwesomeToken;
+describe("Token", function () {
+  let token: Token;
   let owner: { address: string };
   const treasuryAccount = {
     address: "0x14701438d1e2A4BE2578158D26F027ea4e99dA6c",
   };
 
   beforeEach(async () => {
-    const Token = await ethers.getContractFactory("RinaAwesomeToken");
+    const Token = await ethers.getContractFactory("Token");
     [owner] = await ethers.getSigners();
 
     token = await Token.deploy();
@@ -19,8 +19,8 @@ describe("Rina Awesome Token", function () {
   it("Should get correct initial parameters", async function () {
     await token.deployed();
 
-    expect(await token.name()).to.equal("Rina Awesome Token");
-    expect(await token.symbol()).to.equal("RAT");
+    expect(await token.name()).to.equal("Awesome Coin");
+    expect(await token.symbol()).to.equal("AWEC");
     expect(await token.decimals()).to.equal(18);
   });
 
@@ -35,7 +35,7 @@ describe("Rina Awesome Token", function () {
 });
 
 describe("Crowdsale", () => {
-  let token: RinaAwesomeToken;
+  let token: Token;
   let crowdsale: Crowdsale;
   let owner: { address: string };
   const treasuryAccount = {
@@ -44,7 +44,7 @@ describe("Crowdsale", () => {
   const crowdsaleRate = 100;
 
   beforeEach(async () => {
-    const Token = await ethers.getContractFactory("RinaAwesomeToken");
+    const Token = await ethers.getContractFactory("Token");
     const Crowdsale = await ethers.getContractFactory("Crowdsale");
     [owner] = await ethers.getSigners();
 

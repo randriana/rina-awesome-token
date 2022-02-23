@@ -6,10 +6,10 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "hardhat/console.sol";
 
-contract RinaAwesomeToken is ERC20, AccessControl {
+contract Token is ERC20, AccessControl {
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
 
-    constructor() ERC20("Rina Awesome Token", "RAT") {        
+    constructor() ERC20("Awesome Coin", "AWEC") {        
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
 
