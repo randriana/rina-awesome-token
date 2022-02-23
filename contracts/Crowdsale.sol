@@ -6,6 +6,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "./Token.sol";
+import "./AssetOracle.sol";
 
 import "hardhat/console.sol";
 
@@ -28,14 +29,11 @@ contract Crowdsale is Context, ReentrancyGuard {
     // The token being sold
     Token private _token;
 
+    // Oracle that returns underlying asset
+    AssetOracle private _assetOracle;
+
     // Address where funds are collected
     address payable private _wallet;
-
-    // How many token units a buyer gets per wei.
-    // The rate is the conversion between wei and the smallest and indivisible token unit.
-    // So, if you are using a rate of 1 with a ERC20Detailed token with 3 decimals called TOK
-    // 1 wei will give you 1 unit, or 0.001 TOK.
-    uint256 private _rate;
 
     // Amount of wei raised
     uint256 private _weiRaised;
@@ -48,22 +46,22 @@ contract Crowdsale is Context, ReentrancyGuard {
      */
     event TokensMinted(address indexed purchaser, uint256 value, uint256 amount);
 
-    /**
-     * @param rate Number of token units a buyer gets per wei
+    /**     
      * @dev The rate is the conversion between wei and the smallest and indivisible
      * token unit. So, if you are using a rate of 1 with a ERC20Detailed token
      * with 3 decimals called TOK, 1 wei will give you 1 unit, or 0.001 TOK.
      * @param wallet Address where collected funds will be forwarded to
      * @param token Address of the token being sold
+     * @param assetOracle Address of asset oracle
      */
-    constructor (uint256 rate, address payable wallet, Token token) public {
-        require(rate > 0, "Crowdsale: rate is 0");
+    constructor (address payable wallet, Token token, AssetOracle assetOracle) public {        
         require(wallet != address(0), "Crowdsale: wallet is the zero address");
         require(address(token) != address(0), "Crowdsale: token is the zero address");
-
-        _rate = rate;
+        require(address(assetOracle) != address(0), "Crowdsale: assetOracle is the zero address");
+        
         _wallet = wallet;
         _token = token;
+        _assetOracle = assetOracle;
     }
 
     /**
@@ -91,7 +89,8 @@ contract Crowdsale is Context, ReentrancyGuard {
      * @return the number of token units a buyer gets per wei.
      */
     function rate() public view returns (uint256) {
-        return _rate;
+        uint256 walletBalanceInEther = _wallet.balance / 1 ether;        
+        return _assetOracle.getBankBalance() + walletBalanceInEther / _token.totalSupply();
     }
 
     /**
@@ -166,8 +165,8 @@ contract Crowdsale is Context, ReentrancyGuard {
      * @param weiAmount Value in wei to be converted into tokens
      * @return Number of tokens that can be purchased with the specified _weiAmount
      */
-    function _getTokenAmount(uint256 weiAmount) internal view virtual returns (uint256) {
-        return weiAmount.mul(_rate);
+    function _getTokenAmount(uint256 weiAmount) internal view virtual returns (uint256) {                
+        return weiAmount.mul(this.rate());
     }
 
     /**

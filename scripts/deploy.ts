@@ -9,16 +9,21 @@ async function main() {
   const accounts = await ethers.getSigners();
 
   // We get the contract to deploy
-  const Token = await ethers.getContractFactory("RinaAwesomeToken");
+  const Token = await ethers.getContractFactory("Token");
   const token = await Token.deploy();
 
   console.log("Token deployed to:", token.address);
 
+  const AssetOracle = await ethers.getContractFactory("AssetOracle");
+  const oracle = await AssetOracle.deploy(10);
+
+  console.log("Oracle deployed to:", oracle.address);
+
   const Crowdsale = await ethers.getContractFactory("Crowdsale");
   const crowdsale = await Crowdsale.deploy(
-    100,
     accounts[1].address,
-    token.address
+    token.address,
+    oracle.address
   );
 
   await crowdsale.deployed();

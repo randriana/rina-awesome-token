@@ -11,6 +11,7 @@ contract Token is ERC20, AccessControl {
 
     constructor() ERC20("Awesome Coin", "AWEC") {        
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _mint(msg.sender, 1 ether);
     }
 
     function decimals() public view virtual override returns (uint8) {

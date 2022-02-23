@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { ethers } from "hardhat";
-import { Crowdsale, Token } from "../typechain";
+import { Crowdsale, Token, AssetOracle } from "../typechain";
 
 describe("Token", function () {
   let token: Token;
@@ -22,6 +22,7 @@ describe("Token", function () {
     expect(await token.name()).to.equal("Awesome Coin");
     expect(await token.symbol()).to.equal("AWEC");
     expect(await token.decimals()).to.equal(18);
+    expect(await token.totalSupply()).to.equal(1);
   });
 
   it("Should mint correct amount to beneficiary", async () => {
@@ -37,28 +38,30 @@ describe("Token", function () {
 describe("Crowdsale", () => {
   let token: Token;
   let crowdsale: Crowdsale;
+  let assetOracle: AssetOracle;
   let owner: { address: string };
   const treasuryAccount = {
     address: "0x14701438d1e2A4BE2578158D26F027ea4e99dA6c",
   };
-  const crowdsaleRate = 100;
 
   beforeEach(async () => {
     const Token = await ethers.getContractFactory("Token");
+    const AssetOracle = await ethers.getContractFactory("AssetOracle");
     const Crowdsale = await ethers.getContractFactory("Crowdsale");
     [owner] = await ethers.getSigners();
 
     token = await Token.deploy();
+    assetOracle = await AssetOracle.deploy(10);
     crowdsale = await Crowdsale.deploy(
-      crowdsaleRate,
       treasuryAccount.address,
-      token.address
+      token.address,
+      assetOracle.address
     );
   });
 
   describe("Deployment", () => {
     it("Should have correct rate", async () => {
-      expect(await crowdsale.rate()).to.equal(crowdsaleRate);
+      expect(await crowdsale.rate()).to.equal(10);
     });
     it("Should have correct token", async () => {
       expect(await crowdsale.token()).to.equal(token.address);
@@ -78,7 +81,7 @@ describe("Crowdsale", () => {
 
     it("Owner should receive correct amount of tokens", async () => {
       await crowdsale.buyTokens(owner.address, { value: 1 });
-      expect(await token.balanceOf(owner.address)).to.equal(100);
+      expect(await token.balanceOf(owner.address)).to.equal(11);
     });
 
     it("Treasury should receive correct amount of ether", async () => {

@@ -5,17 +5,17 @@ pragma solidity ^0.8.0;
 import "hardhat/console.sol";
 
 contract AssetOracle {
-    int private _bankBalance;
+    uint256 private _bankBalance;
 
-    constructor(int initialBankBalance) {
+    constructor(uint256 initialBankBalance) {
         _bankBalance = initialBankBalance;
     } 
 
-    function getBankBalance() public view returns (int) {
+    function getBankBalance() public view returns (uint256) {
         return _bankBalance;
     }
 
-    function updateBankBalance(int newBalance) public {
+    function updateBankBalance(uint256 newBalance) external {
         _bankBalance = newBalance;
     }
 }
