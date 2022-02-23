@@ -4,7 +4,9 @@ import { ethers } from 'ethers';
 import { useEffect, useState } from 'react';
 import { TokenAbi, CrowdsaleAbi } from './abis';
 import AWEC from './assets/awesome-coin-logo.png';
+import LOGO from './assets/AWESOME_COIN.png';
 import WalletList from './components/wallet-list';
+import ConfirmationModal from './components/confirmation-modal';
 
 const provider = new ethers.providers.Web3Provider(window.ethereum)
 
@@ -20,6 +22,7 @@ function App() {
   const [tokenSale, setTokenSale] = useState(null);
   const [buyAmount, setBuyAmount] = useState(0);
   const [connected, setConnected] = useState(false);
+  const [successModal, setSuccessModal] = useState(false);
 
   useEffect(() => {
     const token = new ethers.Contract(RinaTokenAddress, TokenAbi, provider);
@@ -61,6 +64,8 @@ function App() {
     
     await getAccountBalance(signerAddress);
     await getAccountRinaTokenBalance(signerAddress);
+
+    setSuccessModal(true);
   }
 
   const addToMetaMask = async () => {
@@ -91,7 +96,10 @@ function App() {
   }
 
   return (
-    <div className="flex justify-center h-full items-center bg-gradient-to-r from-silverfox to-whiteish">
+    <div className="flex flex-col justify-center h-full items-center bg-gradient-to-r from-silverfox to-whiteish">
+      <div className="mb-24">
+        <img src={LOGO} className='w-80' alt="" />
+      </div>
       <div className='flex flex-col rounded-2xl border-2 border-stone-700 p-3'>
         <div>
           {!connected ? <WalletList onClick={onConnectWallet} /> :
@@ -104,12 +112,12 @@ function App() {
                     {accountBalance} ETH
                   </span>
                 </div>
-                <div className='flex items-center border-2 border-stone-600 rounded-lg px-2 py-1 ml-2'>
+                <button onClick={addToMetaMask} className='flex items-center border-2 border-stone-600 rounded-lg px-2 py-1 ml-2 hover:bg-slate-200'>
                   <img src={AWEC} className='w-4 mr-1' />
                   <span className=''>
                     {accountRinaTokenBalance} AWEC
                   </span>
-                </div>
+                </button>
               </div><div className='pt-3'>
                   <div className='flex justify-between px-4 w-full border-2 border-stone-500 rounded-2xl h-12 bg-white relative'>
                     <input type="text" className='relative rounded-2xl appearance-none outline-0 text-2xl' onChange={e => onChangeAmount(e.target.value)} />
@@ -120,6 +128,7 @@ function App() {
             )}
         </div>
       </div>
+      <ConfirmationModal tokenBalance={accountRinaTokenBalance} isOpen={successModal} closeModal={() => setSuccessModal(false)}/>
     </div>
   );
 }
