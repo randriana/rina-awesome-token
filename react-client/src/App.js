@@ -3,6 +3,8 @@ import './App.css';
 import { ethers } from 'ethers';
 import { useEffect, useState } from 'react';
 import { TokenAbi, CrowdsaleAbi } from './abis';
+import AWEC from './assets/awesome-coin-logo.png';
+import WalletList from './components/wallet-list';
 
 const provider = new ethers.providers.Web3Provider(window.ethereum)
 
@@ -17,6 +19,7 @@ function App() {
   const [rinaToken, setRinaToken] = useState(null);
   const [tokenSale, setTokenSale] = useState(null);
   const [buyAmount, setBuyAmount] = useState(0);
+  const [connected, setConnected] = useState(false);
 
   useEffect(() => {
     const token = new ethers.Contract(RinaTokenAddress, TokenAbi, provider);
@@ -24,7 +27,7 @@ function App() {
   }, []);
 
   const onConnectWallet = async () => {
-    await provider.send("eth_requestAccounts", []);
+    await provider.send("eth_requestAccounts", [])
     const s = provider.getSigner();
     const address = await s.getAddress();
     setSignerAddress(address);
@@ -34,6 +37,8 @@ function App() {
 
     const ts = new ethers.Contract(TokenSaleAddress, CrowdsaleAbi, s);
     setTokenSale(ts);
+
+    setConnected(true);
   }
 
   const getAccountBalance = async (accountNumber) => {
@@ -52,8 +57,10 @@ function App() {
     });
     console.log('transaction sent', tx);
     console.log('waiting...');
-    const res = await tx.wait();
-    console.log('transaction receipt', res);
+    await tx.wait();
+    
+    await getAccountBalance(signerAddress);
+    await getAccountRinaTokenBalance(signerAddress);
   }
 
   const addToMetaMask = async () => {
@@ -63,17 +70,64 @@ function App() {
         type: 'ERC20', // Initially only supports ERC20, but eventually more!
         options: {
           address: RinaTokenAddress, // The address that the token is at.
-          symbol: 'RAT', // A ticker symbol or shorthand, up to 5 chars.
+          symbol: 'AWEC', // A ticker symbol or shorthand, up to 5 chars.
           decimals: 18, // The number of decimals in the token
-          image: 'data:image/png;base64,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', // A string url of the token logo
+          image: 'data:image/png;base64,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', // A string url of the token logo
         },
       },
     });
   }
 
+
+  const formattedAddress = (addr) => {
+    if (addr === null) return '';
+    const formatted = addr.slice().split('');
+    formatted.splice(6, 32, '...');
+    return formatted.join('');
+  };
+
+  const onChangeAmount = (v) => {
+    setBuyAmount(v);
+  }
+
   return (
-    <div className="flex justify-center h-full items-center">
-      <div className="flex flex-col items-center">
+    <div className="flex justify-center h-full items-center bg-gradient-to-r from-silverfox to-whiteish">
+      <div className='flex flex-col rounded-2xl border-2 border-stone-700 p-3'>
+        <div>
+          {!connected ? <WalletList onClick={onConnectWallet} /> :
+            (
+              <><div className='flex'>
+                <span className='mr-7 font-bold flex items-center'>{formattedAddress(signerAddress)}</span>
+                <div className='flex items-center border-2 border-stone-600 rounded-lg px-2 py-1'>
+                  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/05/Ethereum_logo_2014.svg/628px-Ethereum_logo_2014.svg.png" className='w-3 mr-1' />
+                  <span className=''>
+                    {accountBalance} ETH
+                  </span>
+                </div>
+                <div className='flex items-center border-2 border-stone-600 rounded-lg px-2 py-1 ml-2'>
+                  <img src={AWEC} className='w-4 mr-1' />
+                  <span className=''>
+                    {accountRinaTokenBalance} AWEC
+                  </span>
+                </div>
+              </div><div className='pt-3'>
+                  <div className='flex justify-between px-4 w-full border-2 border-stone-500 rounded-2xl h-12 bg-white relative'>
+                    <input type="text" className='relative rounded-2xl appearance-none outline-0 text-2xl' onChange={e => onChangeAmount(e.target.value)} />
+                    <span className='flex items-center font-semibold text-2xl text-stone-800'>ETH</span>
+                  </div>
+                  <button onClick={async () => await buyTokens()} className="h-10 w-36 px-2 rounded-2xl text-white bg-persimmon border-2 font-bold mt-5">BUY</button>                
+                </div></>
+            )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default App;
+
+/*
+{/* <div className="flex flex-col items-center">
         {true && <button onClick={async () => await onConnectWallet()} className="h-10 w-36 px-2 rounded-2xl bg-blue-400 text-white font-semibold mb-5">Connect wallet</button>}
         {accountBalance !== null && <div>
           <span className='font-bold'>Address: </span>  
@@ -91,9 +145,4 @@ function App() {
         </div>)}
         <input type="number" className="border border-slate-600" value={buyAmount} onChange={e => setBuyAmount(e.target.value)}/>
         <button onClick={async () => await buyTokens()} className="h-10 w-36 px-2 rounded-2xl bg-blue-400 text-white font-semibold mt-5">Buy</button>
-      </div>
-    </div>
-  );
-}
-
-export default App;
+      </div> */
