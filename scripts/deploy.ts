@@ -10,7 +10,7 @@ async function main() {
 
   // We get the contract to deploy
   const Token = await ethers.getContractFactory("Token");
-  const token = await Token.deploy();
+  const token = await Token.deploy("Rina Super Coin", "RISC");
 
   console.log("Token deployed to:", token.address);
 

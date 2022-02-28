@@ -9,7 +9,7 @@ import "hardhat/console.sol";
 contract Token is ERC20, AccessControl {
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
 
-    constructor() ERC20("Awesome Coin", "AWEC") {        
+    constructor(string memory name_, string memory symbol_) ERC20(name_, symbol_) {        
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _mint(msg.sender, 1 ether);
     }

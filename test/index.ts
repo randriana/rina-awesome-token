@@ -2,6 +2,9 @@ import { expect } from "chai";
 import { ethers } from "hardhat";
 import { Crowdsale, Token, AssetOracle } from "../typechain";
 
+const tokenName = "Rina Super Coin";
+const tokenSymbol = "RISC";
+
 describe("Token", function () {
   let token: Token;
   let owner: { address: string };
@@ -13,14 +16,14 @@ describe("Token", function () {
     const Token = await ethers.getContractFactory("Token");
     [owner] = await ethers.getSigners();
 
-    token = await Token.deploy();
+    token = await Token.deploy(tokenName, tokenSymbol);
   });
 
   it("Should get correct initial parameters", async function () {
     await token.deployed();
 
-    expect(await token.name()).to.equal("Awesome Coin");
-    expect(await token.symbol()).to.equal("AWEC");
+    expect(await token.name()).to.equal(tokenName);
+    expect(await token.symbol()).to.equal(tokenSymbol);
     expect(await token.decimals()).to.equal(18);
     expect(await token.totalSupply()).to.equal(ethers.utils.parseEther("1"));
   });
@@ -50,7 +53,7 @@ describe("Crowdsale", () => {
     const Crowdsale = await ethers.getContractFactory("Crowdsale");
     [owner] = await ethers.getSigners();
 
-    token = await Token.deploy();
+    token = await Token.deploy(tokenName, tokenSymbol);
     assetOracle = await AssetOracle.deploy(10);
     crowdsale = await Crowdsale.deploy(
       treasuryAccount.address,
