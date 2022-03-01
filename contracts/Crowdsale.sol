@@ -21,7 +21,7 @@ import "hardhat/console.sol";
  * the methods to add functionality. Consider using 'super' where appropriate to concatenate
  * behavior.
  */
-contract Crowdsale is Context, ReentrancyGuard {
+contract Crowdsale is Context, ReentrancyGuard, AccessControl {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
@@ -35,6 +35,8 @@ contract Crowdsale is Context, ReentrancyGuard {
     uint256 private _weiRaised;
 
     uint256 private _rate;
+
+    bytes32 public constant MAINTAINER_ROLE = keccak256("MAINTAINER_ROLE");
 
     /**
      * Event for token purchase logging
@@ -60,6 +62,8 @@ contract Crowdsale is Context, ReentrancyGuard {
         _wallet = wallet;
         _token = token;        
         _rate = initialRate;
+
+        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
 
     /**
@@ -86,11 +90,11 @@ contract Crowdsale is Context, ReentrancyGuard {
     /**
      * @return the number of token units a buyer gets per wei.
      */
-    function rate() public view returns (uint256) {                
+    function getRate() public view returns (uint256) {                
         return _rate;
     }
 
-    function updateRate(uint256 newRate) public {
+    function setRate(uint256 newRate) external onlyRole(MAINTAINER_ROLE) {
         _rate = newRate;
     }
 
@@ -167,7 +171,7 @@ contract Crowdsale is Context, ReentrancyGuard {
      * @return Number of tokens that can be purchased with the specified _weiAmount
      */
     function _getTokenAmount(uint256 weiAmount) internal view virtual returns (uint256) {                
-        return weiAmount.mul(this.rate());
+        return weiAmount.mul(_rate);
     }
 
     /**
