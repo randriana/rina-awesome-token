@@ -54,7 +54,7 @@ contract Crowdsale is Context, ReentrancyGuard, AccessControl {
      * @param token Address of the token being sold
      * @param initialRate Initial rate for token price
      */
-    constructor (address payable wallet, Token token, uint256 initialRate) public {        
+    constructor (address payable wallet, Token token, uint256 initialRate) {        
         require(wallet != address(0), "Crowdsale: wallet is the zero address");
         require(address(token) != address(0), "Crowdsale: token is the zero address");        
         require(initialRate > 0, "Rate cannot be 0");
@@ -114,7 +114,7 @@ contract Crowdsale is Context, ReentrancyGuard, AccessControl {
     function buyTokens(address beneficiary) public nonReentrant payable {        
         uint256 weiAmount = msg.value;
         _preValidatePurchase(beneficiary, weiAmount);
-
+        
         // calculate token amount to be created
         uint256 tokens = _getTokenAmount(weiAmount);
 
@@ -170,8 +170,8 @@ contract Crowdsale is Context, ReentrancyGuard, AccessControl {
      * @param weiAmount Value in wei to be converted into tokens
      * @return Number of tokens that can be purchased with the specified _weiAmount
      */
-    function _getTokenAmount(uint256 weiAmount) internal view virtual returns (uint256) {                
-        return weiAmount.mul(_rate);
+    function _getTokenAmount(uint256 weiAmount) internal view virtual returns (uint256) {
+        return weiAmount.mul(_rate) / 1 ether;
     }
 
     /**

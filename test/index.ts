@@ -42,6 +42,7 @@ describe("Crowdsale", () => {
   let token: Token;
   let crowdsale: Crowdsale;
   let owner: { address: string };
+  let acc2: { address: string };
   const treasuryAccount = {
     address: "0x14701438d1e2A4BE2578158D26F027ea4e99dA6c",
   };
@@ -49,19 +50,19 @@ describe("Crowdsale", () => {
   beforeEach(async () => {
     const Token = await ethers.getContractFactory("Token");
     const Crowdsale = await ethers.getContractFactory("Crowdsale");
-    [owner] = await ethers.getSigners();
+    [owner, acc2] = await ethers.getSigners();
 
     token = await Token.deploy(tokenName, tokenSymbol);
     crowdsale = await Crowdsale.deploy(
       treasuryAccount.address,
       token.address,
-      10
+      ethers.utils.parseEther("1")
     );
   });
 
   describe("Deployment", () => {
     it("Should have correct rate", async () => {
-      expect(await crowdsale.rate()).to.equal(10);
+      expect(await crowdsale.getRate()).to.equal(ethers.utils.parseEther("1"));
     });
     it("Should have correct token", async () => {
       expect(await crowdsale.token()).to.equal(token.address);
@@ -84,7 +85,7 @@ describe("Crowdsale", () => {
         value: ethers.utils.parseEther("1").toString(),
       });
       expect(await token.balanceOf(owner.address)).to.equal(
-        ethers.utils.parseEther("11").toString()
+        ethers.utils.parseEther("2").toString()
       );
     });
 
@@ -92,6 +93,45 @@ describe("Crowdsale", () => {
       expect(
         await ethers.provider.getBalance(treasuryAccount.address)
       ).to.equal(ethers.utils.parseEther("1"));
+    });
+  });
+
+  describe("Rate", () => {
+    beforeEach(async () => {
+      await crowdsale.grantRole(
+        ethers.utils.keccak256(ethers.utils.toUtf8Bytes("MAINTAINER_ROLE")),
+        owner.address
+      );
+    });
+
+    it("Should set new rate", async () => {
+      await crowdsale.grantRole(
+        ethers.utils.keccak256(ethers.utils.toUtf8Bytes("MAINTAINER_ROLE")),
+        owner.address
+      );
+
+      expect(await crowdsale.getRate()).to.equal(ethers.utils.parseEther("1"));
+
+      await crowdsale.setRate(10);
+
+      expect(await crowdsale.getRate()).to.equal(10);
+    });
+
+    it("Should mint correct number of tokens with new rate", async () => {
+      await crowdsale.setRate(ethers.utils.parseEther(`3.14`));
+
+      await token.grantRole(
+        ethers.utils.keccak256(ethers.utils.toUtf8Bytes("MINTER_ROLE")),
+        crowdsale.address
+      );
+
+      await crowdsale.buyTokens(acc2.address, {
+        value: ethers.utils.parseEther("1").toString(),
+      });
+
+      const weiBalance = await token.balanceOf(acc2.address);
+
+      expect(ethers.utils.formatEther(weiBalance)).to.equal("3.14");
     });
   });
 });

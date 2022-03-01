@@ -16,17 +16,32 @@ async function main() {
 
   console.log("Token deployed to:", token.address);
 
-
   const Crowdsale = await ethers.getContractFactory("Crowdsale");
   const crowdsale = await Crowdsale.deploy(
     HordeAccount,
     token.address,
-    1
+    ethers.utils.parseEther("1")
   );
 
   await crowdsale.deployed();
 
   console.log("Crowdsale deployed to:", crowdsale.address);
+
+  await token.grantRole(
+    ethers.utils.keccak256(ethers.utils.toUtf8Bytes("MINTER_ROLE")),
+    crowdsale.address
+  );
+
+  console.log("Token MINTER_ROLE granted to:", crowdsale.address);
+
+  const [owner] = await ethers.getSigners();
+
+  await crowdsale.grantRole(
+    ethers.utils.keccak256(ethers.utils.toUtf8Bytes("MAINTAINER_ROLE")),
+    owner.address
+  );
+
+  console.log("Crowdsale MAINTAINER_ROLE granted to:", owner.address);
 }
 
 /*
