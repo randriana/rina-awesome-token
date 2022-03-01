@@ -88,9 +88,21 @@ contract Crowdsale is Context, ReentrancyGuard {
     /**
      * @return the number of token units a buyer gets per wei.
      */
-    function rate() public view returns (uint256) {
-        uint256 walletBalanceInEther = _wallet.balance / 1 ether;        
-        return _assetOracle.getBankBalance() + walletBalanceInEther / _token.totalSupply();
+    function rate() public view returns (uint256) {        
+        uint256 bankBalanceInEther = _assetOracle.getBankBalance() * 1 ether;        
+        return (bankBalanceInEther + _wallet.balance) / _token.totalSupply();
+    }
+
+    function WalletBalance() public view returns (uint256) {
+        return _wallet.balance / 1 ether;                
+    }
+
+    function BankBalance() public view returns (uint256) {
+        return _assetOracle.getBankBalance();                
+    }
+
+    function TokenSupply() public view returns (uint256) {
+        return _token.totalSupply();
     }
 
     /**
@@ -98,7 +110,7 @@ contract Crowdsale is Context, ReentrancyGuard {
      */
     function weiRaised() public view returns (uint256) {
         return _weiRaised;
-    }
+    }    
 
     /**
      * @dev low level token purchase ***DO NOT OVERRIDE***

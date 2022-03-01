@@ -47,7 +47,7 @@ const ConfirmationModal = ({ isOpen, closeModal, tokenBalance }) => {
                             </Dialog.Title>
                             <div className="mt-2">
                                 <p className="text-sm text-gray-500">
-                                    You have in total {tokenBalance} Awesome Coins!
+                                    You have in total {tokenBalance} Rina Super Coins!
                                 </p>
                             </div>
 

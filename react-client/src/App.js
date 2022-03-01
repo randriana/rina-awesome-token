@@ -8,11 +8,12 @@ import LOGO from './assets/AWESOME_COIN.png';
 import WalletList from './components/wallet-list';
 import ConfirmationModal from './components/confirmation-modal';
 import SubmittedModal from './components/submitted-modal';
+import RateInfoPopover from './components/rate-info-popover';
 
 const provider = new ethers.providers.Web3Provider(window.ethereum)
 
-const RinaTokenAddress = '0x891d38D1d1dDe90082AF4c273b3FED9a1b3cd951';
-const TokenSaleAddress = '0x45B9F482e79D84770f0AbE003D7510b841b0EbE0';
+const RinaTokenAddress = '0x5fbdb2315678afecb367f032d93f642f64180aa3';
+const TokenSaleAddress = '0x9fe46736679d2d9a65f0992f2272de9f3c7fa6e0';
 
 function App() {
   const [signer, setSigner] = useState(null);
@@ -26,6 +27,9 @@ function App() {
   const [successModal, setSuccessModal] = useState(false);
   const [submittedModal, setSubmittedModal] = useState(false);
   const [rate, setRate] = useState(null);
+  const [walletBalance, setWalletBalance] = useState(null);
+  const [bankBalance, setBankBalance] = useState(null);
+  const [totalSupply, setTotalSupply] = useState(null);
 
   useEffect(() => {
     const token = new ethers.Contract(RinaTokenAddress, TokenAbi, provider);
@@ -45,6 +49,12 @@ function App() {
     setTokenSale(ts);
 
     const r = await ts.rate();
+    const wb = await ts.WalletBalance();
+    const bb = await ts.BankBalance();
+    const tks = await ts.TokenSupply();
+    setTotalSupply(Number(ethers.utils.formatEther((tks))));
+    setBankBalance(Number(bb));
+    setWalletBalance(Number(wb))
     setRate(Number(r));
 
     setConnected(true);
@@ -132,7 +142,7 @@ function App() {
                       <input type="text" className='relative rounded-2xl appearance-none outline-0 text-2xl' onChange={e => onChangeAmount(e.target.value)} value={buyAmount} />
                       <span className='flex items-center font-semibold text-2xl text-stone-800'>ETH</span>
                     </div>
-                    {buyAmount > 0 && <span className='pl-2 text-sm'>= {rate*buyAmount} RISC</span>}
+                    {buyAmount > 0 && <RateInfoPopover bankBalance={bankBalance} totalSupply={totalSupply} walletBalance={walletBalance} rate={rate*buyAmount} calculatedRate={rate}/>} 
                   </div>                  
                   <button onClick={async () => await buyTokens()} className="h-10 w-36 px-2 rounded-2xl text-white bg-persimmon border-2 font-bold mt-5">BUY</button>
                 </div></>

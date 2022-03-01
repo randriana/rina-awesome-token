@@ -515,18 +515,18 @@ export const CrowdsaleAbi = [
   {
     "inputs": [
       {
-        "internalType": "uint256",
-        "name": "rate",
-        "type": "uint256"
-      },
-      {
         "internalType": "address payable",
         "name": "wallet",
         "type": "address"
       },
       {
-        "internalType": "contract RinaAwesomeToken",
+        "internalType": "contract Token",
         "name": "token",
+        "type": "address"
+      },
+      {
+        "internalType": "contract AssetOracle",
+        "name": "assetOracle",
         "type": "address"
       }
     ],
@@ -557,6 +557,45 @@ export const CrowdsaleAbi = [
     ],
     "name": "TokensMinted",
     "type": "event"
+  },
+  {
+    "inputs": [],
+    "name": "BankBalance",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "TokenSupply",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "WalletBalance",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
   },
   {
     "inputs": [
