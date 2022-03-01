@@ -64,10 +64,10 @@ function App() {
     const tx = await tokenSale.buyTokens(signerAddress, {
       value: ethers.utils.parseEther(buyAmount)
     });
-    console.log('transaction sent', tx);
-    console.log('waiting...');
+    
     setSubmittedModal(true);
     await tx.wait();
+    console.log('hahah')
 
     await getAccountBalance(signerAddress);
     await getAccountRinaTokenBalance(signerAddress);
@@ -76,7 +76,7 @@ function App() {
   }
 
   const addToMetaMask = async () => {
-    const wasAdded = await window.ethereum.request({
+    await window.ethereum.request({
       method: 'wallet_watchAsset',
       params: {
         type: 'ERC20', // Initially only supports ERC20, but eventually more!
@@ -139,7 +139,7 @@ function App() {
             )}
         </div>
       </div>
-      <ConfirmationModal tokenBalance={accountRinaTokenBalance} isOpen={successModal} closeModal={() => setSuccessModal(false)} />
+      <ConfirmationModal tokenBalance={accountRinaTokenBalance} isOpen={successModal && !submittedModal} closeModal={() => setSuccessModal(false)} />
       <SubmittedModal isOpen={submittedModal} closeModal={() => setSubmittedModal(false)}/>
     </div>
   );
