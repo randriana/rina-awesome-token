@@ -6,7 +6,6 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "./Token.sol";
-import "./AssetOracle.sol";
 
 import "hardhat/console.sol";
 
@@ -29,14 +28,13 @@ contract Crowdsale is Context, ReentrancyGuard {
     // The token being sold
     Token private _token;
 
-    // Oracle that returns underlying asset
-    AssetOracle private _assetOracle;
-
     // Address where funds are collected
     address payable private _wallet;
 
     // Amount of wei raised
     uint256 private _weiRaised;
+
+    uint256 private _rate;
 
     /**
      * Event for token purchase logging
@@ -52,16 +50,16 @@ contract Crowdsale is Context, ReentrancyGuard {
      * with 3 decimals called TOK, 1 wei will give you 1 unit, or 0.001 TOK.
      * @param wallet Address where collected funds will be forwarded to
      * @param token Address of the token being sold
-     * @param assetOracle Address of asset oracle
+     * @param initialRate Initial rate for token price
      */
-    constructor (address payable wallet, Token token, AssetOracle assetOracle) public {        
+    constructor (address payable wallet, Token token, uint256 initialRate) public {        
         require(wallet != address(0), "Crowdsale: wallet is the zero address");
-        require(address(token) != address(0), "Crowdsale: token is the zero address");
-        require(address(assetOracle) != address(0), "Crowdsale: assetOracle is the zero address");
+        require(address(token) != address(0), "Crowdsale: token is the zero address");        
+        require(initialRate > 0, "Rate cannot be 0");
         
         _wallet = wallet;
-        _token = token;
-        _assetOracle = assetOracle;
+        _token = token;        
+        _rate = initialRate;
     }
 
     /**
@@ -88,21 +86,12 @@ contract Crowdsale is Context, ReentrancyGuard {
     /**
      * @return the number of token units a buyer gets per wei.
      */
-    function rate() public view returns (uint256) {        
-        uint256 bankBalanceInEther = _assetOracle.getBankBalance() * 1 ether;        
-        return (bankBalanceInEther + _wallet.balance) / _token.totalSupply();
+    function rate() public view returns (uint256) {                
+        return _rate;
     }
 
-    function WalletBalance() public view returns (uint256) {
-        return _wallet.balance / 1 ether;                
-    }
-
-    function BankBalance() public view returns (uint256) {
-        return _assetOracle.getBankBalance();                
-    }
-
-    function TokenSupply() public view returns (uint256) {
-        return _token.totalSupply();
+    function updateRate(uint256 newRate) public {
+        _rate = newRate;
     }
 
     /**

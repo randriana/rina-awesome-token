@@ -5,28 +5,14 @@
 // Runtime Environment's members available in the global scope.
 import { ethers } from "hardhat";
 
-const HordeAccount = "0x4C22a285896e500aB8A85fc372e56F2C990794c3";
-
 async function main() {
-  // const accounts = await ethers.getSigners();
-
-  // We get the contract to deploy
-  const Token = await ethers.getContractFactory("Token");
-  const token = await Token.deploy("Rina Super Coin", "RISC");
-
-  console.log("Token deployed to:", token.address);
-
-
-  const Crowdsale = await ethers.getContractFactory("Crowdsale");
-  const crowdsale = await Crowdsale.deploy(
-    HordeAccount,
-    token.address,
-    1
+  const Contract = await ethers.getContractFactory("AssetOracle");
+  const contract = await Contract.attach(
+    "0xe7f1725e7734ce288f8367e1bb143e90bb3f0512"
   );
 
-  await crowdsale.deployed();
-
-  console.log("Crowdsale deployed to:", crowdsale.address);
+  const tx = await contract.updateBankBalance(12);
+  console.log(tx);
 }
 
 /*

@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { ethers } from "hardhat";
-import { Crowdsale, Token, AssetOracle } from "../typechain";
+import { Crowdsale, Token } from "../typechain";
 
 const tokenName = "Rina Super Coin";
 const tokenSymbol = "RISC";
@@ -41,7 +41,6 @@ describe("Token", function () {
 describe("Crowdsale", () => {
   let token: Token;
   let crowdsale: Crowdsale;
-  let assetOracle: AssetOracle;
   let owner: { address: string };
   const treasuryAccount = {
     address: "0x14701438d1e2A4BE2578158D26F027ea4e99dA6c",
@@ -49,16 +48,14 @@ describe("Crowdsale", () => {
 
   beforeEach(async () => {
     const Token = await ethers.getContractFactory("Token");
-    const AssetOracle = await ethers.getContractFactory("AssetOracle");
     const Crowdsale = await ethers.getContractFactory("Crowdsale");
     [owner] = await ethers.getSigners();
 
     token = await Token.deploy(tokenName, tokenSymbol);
-    assetOracle = await AssetOracle.deploy(10);
     crowdsale = await Crowdsale.deploy(
       treasuryAccount.address,
       token.address,
-      assetOracle.address
+      10
     );
   });
 
@@ -87,7 +84,7 @@ describe("Crowdsale", () => {
         value: ethers.utils.parseEther("1").toString(),
       });
       expect(await token.balanceOf(owner.address)).to.equal(
-        ethers.utils.parseEther("11")
+        ethers.utils.parseEther("11").toString()
       );
     });
 
