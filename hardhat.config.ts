@@ -25,15 +25,23 @@ task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
 const config: HardhatUserConfig = {
   solidity: "0.8.4",
   networks: {
-    // ropsten: {
-    //   url: process.env.ROPSTEN_URL || "",
-    //   accounts:
-    //     process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
-    // },
-    rinkeby: {
-      url: "https://rinkeby.infura.io/v3/f4c2cb6176e04324b4376f53df97951c",
+    ropsten: {
+      url: process.env.ROPSTEN_URI !== undefined ? process.env.ROPSTEN_URI : "",
       accounts:
         process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+      gas: 2100000,
+      gasPrice: 8000000000,
+    },
+    rinkeby: {
+      url: process.env.RINKEBY_URI !== undefined ? process.env.RINKEBY_URI : "",
+      accounts:
+        process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+    },
+    hardhat: {
+      forking: {
+        url: process.env.FORK_URI !== undefined ? process.env.FORK_URI : "",
+        blockNumber: 14306438,
+      },
     },
   },
   gasReporter: {
