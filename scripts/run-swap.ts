@@ -5,19 +5,9 @@
 // Runtime Environment's members available in the global scope.
 import { ethers } from "hardhat";
 
-const SwapRouter = "0xE592427A0AEce92De3Edee1F18E0157C05861564";
-
 async function main() {
   const [acc] = await ethers.getSigners();
-  const Swap = await ethers.getContractFactory("Swap", acc);
-  const swap = await Swap.deploy(SwapRouter);
-
-  const tx = await swap.swapETH({
-    value: ethers.utils.parseEther("1"),
-  });
-
-  await tx.wait();
-  console.log("success!");
+  console.log(await ethers.provider.getBalance(acc.address));
 }
 
 /*

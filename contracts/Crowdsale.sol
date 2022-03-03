@@ -6,6 +6,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "./Token.sol";
+import "./Swap.sol";
 
 import "hardhat/console.sol";
 
@@ -21,7 +22,7 @@ import "hardhat/console.sol";
  * the methods to add functionality. Consider using 'super' where appropriate to concatenate
  * behavior.
  */
-contract Crowdsale is Context, ReentrancyGuard, AccessControl {
+contract Crowdsale is Context, ReentrancyGuard, AccessControl{
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
@@ -37,6 +38,8 @@ contract Crowdsale is Context, ReentrancyGuard, AccessControl {
     uint256 private _rate;
 
     bytes32 public constant MAINTAINER_ROLE = keccak256("MAINTAINER_ROLE");
+    address public constant DAI = 0x6B175474E89094C44Da98b954EedeAC495271d0F;
+    Swap private _swap;
 
     /**
      * Event for token purchase logging
@@ -54,7 +57,7 @@ contract Crowdsale is Context, ReentrancyGuard, AccessControl {
      * @param token Address of the token being sold
      * @param initialRate Initial rate for token price
      */
-    constructor (address payable wallet, Token token, uint256 initialRate) {        
+    constructor (address payable wallet, Token token, uint256 initialRate, Swap swap){        
         require(wallet != address(0), "Crowdsale: wallet is the zero address");
         require(address(token) != address(0), "Crowdsale: token is the zero address");        
         require(initialRate > 0, "Rate cannot be 0");
@@ -62,6 +65,7 @@ contract Crowdsale is Context, ReentrancyGuard, AccessControl {
         _wallet = wallet;
         _token = token;        
         _rate = initialRate;
+        _swap = swap;
 
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
@@ -112,22 +116,23 @@ contract Crowdsale is Context, ReentrancyGuard, AccessControl {
      * @param beneficiary Recipient of the token purchase
      */
     function buyTokens(address beneficiary) public nonReentrant payable {        
-        uint256 weiAmount = msg.value;
-        _preValidatePurchase(beneficiary, weiAmount);
+        _preValidatePurchase(beneficiary, msg.value);
+
+        uint256 swappedAmount = _swapETH(msg.value);
+
+        _forwardFunds(swappedAmount);
         
-        // calculate token amount to be created
-        uint256 tokens = _getTokenAmount(weiAmount);
+        uint256 tokens = _getTokenAmount(swappedAmount);
 
         // update state
-        _weiRaised = _weiRaised.add(weiAmount);
+        _weiRaised = _weiRaised.add(swappedAmount);
 
         _mint(beneficiary, tokens);
-        emit TokensMinted(_msgSender(), weiAmount, tokens);
+        emit TokensMinted(_msgSender(), swappedAmount, tokens);
 
-        _updatePurchasingState(beneficiary, weiAmount);
+        _updatePurchasingState(beneficiary, swappedAmount);
 
-        _forwardFunds();
-        _postValidatePurchase(beneficiary, weiAmount);
+        _postValidatePurchase(beneficiary, swappedAmount);
     }
 
     /**
@@ -170,18 +175,22 @@ contract Crowdsale is Context, ReentrancyGuard, AccessControl {
      * @param weiAmount Value in wei to be converted into tokens
      * @return Number of tokens that can be purchased with the specified _weiAmount
      */
-    function _getTokenAmount(uint256 weiAmount) internal view virtual returns (uint256) {
+    function _getTokenAmount(uint256 weiAmount) private view returns (uint256) {
         return weiAmount.mul(_rate) / 1 ether;
     }
 
     /**
      * @dev Determines how ETH is stored/forwarded on purchases.
      */
-    function _forwardFunds() internal {
-        _wallet.transfer(msg.value);
+    function _forwardFunds(uint256 amount) private {
+        IERC20(DAI).transfer(address(_wallet), amount);        
     }
 
     function _mint(address to, uint256 tokenAmount) private {
         _token.mint(to, tokenAmount);
+    }
+
+    function _swapETH(uint256 amount) private returns (uint256) {
+        return _swap._swapETH{ value: amount}();
     }
 }

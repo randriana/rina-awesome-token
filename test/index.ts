@@ -46,6 +46,7 @@ describe("Crowdsale", () => {
   const treasuryAccount = {
     address: "0x14701438d1e2A4BE2578158D26F027ea4e99dA6c",
   };
+  const SwapRouter = "0xE592427A0AEce92De3Edee1F18E0157C05861564";
 
   beforeEach(async () => {
     const Token = await ethers.getContractFactory("Token");
@@ -56,7 +57,8 @@ describe("Crowdsale", () => {
     crowdsale = await Crowdsale.deploy(
       treasuryAccount.address,
       token.address,
-      ethers.utils.parseEther("1")
+      ethers.utils.parseEther("1"),
+      SwapRouter
     );
   });
 

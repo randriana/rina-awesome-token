@@ -4,11 +4,11 @@
 // When running the script with `npx hardhat run <script>` you'll find the Hardhat
 // Runtime Environment's members available in the global scope.
 import { ethers } from "hardhat";
-
-const HordeAccount = "0x4C22a285896e500aB8A85fc372e56F2C990794c3";
+import { Crowdsale, Token } from "../typechain";
+const SwapRouter = "0xE592427A0AEce92De3Edee1F18E0157C05861564";
 
 async function main() {
-  // const accounts = await ethers.getSigners();
+  const [acc2] = await ethers.getSigners();
 
   // We get the contract to deploy
   const Token = await ethers.getContractFactory("Token");
@@ -16,11 +16,15 @@ async function main() {
 
   console.log("Token deployed to:", token.address);
 
+  const Swap = await ethers.getContractFactory("Swap");
+  const swap = await Swap.deploy(SwapRouter);
+
   const Crowdsale = await ethers.getContractFactory("Crowdsale");
   const crowdsale = await Crowdsale.deploy(
-    HordeAccount,
+    acc2.address,
     token.address,
-    ethers.utils.parseEther("1")
+    ethers.utils.parseEther("1"),
+    swap.address
   );
 
   await crowdsale.deployed();
@@ -42,7 +46,26 @@ async function main() {
   );
 
   console.log("Crowdsale MAINTAINER_ROLE granted to:", owner.address);
+
+  //await testSwap(crowdsale, token);
 }
+
+const testSwap = async (crowdsale: Crowdsale, token: Token) => {
+  const [account] = await ethers.getSigners();
+  const TOKEN = await ethers.getContractFactory("Token");
+  const dai = await TOKEN.attach("0x6B175474E89094C44Da98b954EedeAC495271d0F");
+
+  const preBalance = await dai.balanceOf(account.address);
+
+  console.log("DAI balance before", ethers.utils.formatEther(preBalance));
+  const tx = await crowdsale.buyTokens(account.address, {
+    value: ethers.utils.parseEther("0.01"),
+  });
+  await tx.wait();
+  const postBalance = await dai.balanceOf(account.address);
+
+  console.log("DAI balance after", ethers.utils.formatEther(postBalance));
+};
 
 /*
  *Token deployed to: 0x5FbDB2315678afecb367f032d93F642f64180aa3

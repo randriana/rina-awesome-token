@@ -28,20 +28,39 @@ const config: HardhatUserConfig = {
     ropsten: {
       url: process.env.ROPSTEN_URI !== undefined ? process.env.ROPSTEN_URI : "",
       accounts:
-        process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+        process.env.PERSONAL_PRIVATE_KEY !== undefined
+          ? [process.env.PERSONAL_PRIVATE_KEY]
+          : [],
       gas: 2100000,
       gasPrice: 8000000000,
     },
     rinkeby: {
       url: process.env.RINKEBY_URI !== undefined ? process.env.RINKEBY_URI : "",
       accounts:
-        process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+        process.env.PERSONAL_PRIVATE_KEY !== undefined
+          ? [process.env.PERSONAL_PRIVATE_KEY]
+          : [],
     },
     hardhat: {
       forking: {
         url: process.env.FORK_URI !== undefined ? process.env.FORK_URI : "",
         blockNumber: 14306438,
       },
+      accounts: [
+        {
+          privateKey: process.env.PERSONAL_PRIVATE_KEY ?? "",
+          balance: (10 * Math.pow(10, 18)).toString(),
+        },
+        {
+          privateKey: process.env.HORDE_PRIVATE_KEY ?? "",
+          balance: (10 * Math.pow(10, 18)).toString(),
+        },
+        {
+          privateKey:
+            "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",
+          balance: (10 * Math.pow(10, 18)).toString(),
+        },
+      ],
     },
   },
   gasReporter: {
