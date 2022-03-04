@@ -191,6 +191,6 @@ contract Crowdsale is Context, ReentrancyGuard, AccessControl{
     }
 
     function _swapETH(uint256 amount) private returns (uint256) {
-        return _swap._swapETH{ value: amount}();
+        return _swap.swapETH{ value: amount}();
     }
 }

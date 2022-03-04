@@ -16,7 +16,7 @@ contract Swap {
         swapRouter = _swapRouter;        
     }
 
-    function _swapETH() external payable returns (uint256) {                
+    function swapETH() external payable returns (uint256) {                
         IWETH9(WETH9).deposit{value: msg.value}();
         
         TransferHelper.safeApprove(WETH9, address(swapRouter), msg.value);
