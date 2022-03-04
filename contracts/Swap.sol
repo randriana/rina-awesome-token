@@ -17,10 +17,6 @@ contract Swap {
     }
 
     function swapETH() external payable returns (uint256) {                
-        IWETH9(WETH9).deposit{value: msg.value}();
-        
-        TransferHelper.safeApprove(WETH9, address(swapRouter), msg.value);
-
         ISwapRouter.ExactInputSingleParams memory params =
             ISwapRouter.ExactInputSingleParams({
                 tokenIn: WETH9,
@@ -33,6 +29,6 @@ contract Swap {
                 sqrtPriceLimitX96: 0
             });
 
-        return swapRouter.exactInputSingle(params);
+        return swapRouter.exactInputSingle{ value: msg.value}(params);
     }
 }

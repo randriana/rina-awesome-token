@@ -9,15 +9,14 @@ const SwapRouter = "0xE592427A0AEce92De3Edee1F18E0157C05861564";
 
 describe("Swap", function () {
   let swap: Swap;
-  let buyer: SignerWithAddress;
   let dai: Token;
   // eslint-disable-next-line no-unused-vars
   let owner: SignerWithAddress;
 
   before(async () => {
-    [owner, buyer] = await ethers.getSigners();
+    [owner] = await ethers.getSigners();
 
-    const Swap = await ethers.getContractFactory("Swap", buyer);
+    const Swap = await ethers.getContractFactory("Swap", owner);
 
     const Token = await ethers.getContractFactory("Token");
     dai = await Token.attach(DAIaddress);
@@ -33,8 +32,8 @@ describe("Swap", function () {
     await tx.wait();
   });
 
-  it("owner should receive correct amount of RISC", async function () {
-    const daiBalance = await dai.balanceOf(buyer.address);
-    expect(Number(toEther(daiBalance))).to.be.gt(600);
+  it("owner should receive correct amount of DAI", async function () {
+    const daiBalance = await dai.balanceOf(owner.address);
+    expect(Number(toEther(daiBalance))).to.be.closeTo(295, 0.2);
   });
 });
