@@ -2,7 +2,8 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { expect } from "chai";
 import { ethers } from "hardhat";
 import { Crowdsale, Swap, Token } from "../typechain";
-import { resetTokenBalance } from './utils';
+import { fromEther, toEther } from "./utils/format";
+import { resetTokenBalance } from "./utils/utils";
 
 const tokenName = "Rina Super Coin";
 const tokenSymbol = "RISC";
@@ -29,7 +30,7 @@ describe("Crowdsale", () => {
     crowdsale = await Crowdsale.deploy(
       treasury.address,
       token.address,
-      ethers.utils.parseEther("1"),
+      ethers.constants.WeiPerEther,
       swap.address
     );
     dai = await Token.attach(DAIaddress);
@@ -37,7 +38,7 @@ describe("Crowdsale", () => {
 
   describe("Deployment", () => {
     it("Should have correct rate", async () => {
-      expect(await crowdsale.getRate()).to.equal(ethers.utils.parseEther("1"));
+      expect(await crowdsale.getRate()).to.equal(fromEther(1));
     });
     it("Should have correct token", async () => {
       expect(await crowdsale.token()).to.equal(token.address);
@@ -54,24 +55,18 @@ describe("Crowdsale", () => {
         crowdsale.address
       );
       await crowdsale.buyTokens(buyer.address, {
-        value: ethers.utils.parseEther("1").toString(),
+        value: fromEther(1).toString(),
       });
     });
 
     it("Buyer should receive correct amount of tokens", async () => {
       const balance = await token.balanceOf(buyer.address);
-      expect(Number(ethers.utils.formatEther(balance))).to.be.closeTo(
-        2951,
-        0.8
-      );
+      expect(Number(toEther(balance))).to.be.closeTo(2951, 0.8);
     });
 
     it("Treasury should receive correct amount of ether", async () => {
       const daiBalance = await dai.balanceOf(treasury.address);
-      expect(Number(ethers.utils.formatEther(daiBalance))).to.be.closeTo(
-        2951,
-        0.8
-      );
+      expect(Number(toEther(daiBalance))).to.be.closeTo(2951, 0.8);
     });
   });
 
@@ -89,7 +84,7 @@ describe("Crowdsale", () => {
     });
 
     it("Should set new rate", async () => {
-      expect(await crowdsale.getRate()).to.equal(ethers.utils.parseEther("1"));
+      expect(await crowdsale.getRate()).to.equal(fromEther(1));
 
       await crowdsale.setRate(10);
 
@@ -97,17 +92,14 @@ describe("Crowdsale", () => {
     });
 
     it("Should mint correct number of tokens with new rate", async () => {
-      await crowdsale.setRate(ethers.utils.parseEther(`3.14`));
+      await crowdsale.setRate(fromEther(3.14));
 
       await crowdsale.buyTokens(buyer.address, {
-        value: ethers.utils.parseEther("1").toString(),
+        value: fromEther(1).toString(),
       });
 
       const balance = await token.balanceOf(buyer.address);
-      expect(Number(ethers.utils.formatEther(balance))).to.be.closeTo(
-        9268,
-        0.4
-      );
+      expect(Number(toEther(balance))).to.be.closeTo(9268, 0.4);
     });
   });
 });

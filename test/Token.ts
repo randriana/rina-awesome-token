@@ -2,6 +2,7 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { expect } from "chai";
 import { ethers } from "hardhat";
 import { Token } from "../typechain";
+import { fromEther, toEther } from "./utils/format";
 
 const tokenName = "Rina Super Coin";
 const tokenSymbol = "RISC";
@@ -32,8 +33,8 @@ describe("Token", function () {
       ethers.utils.keccak256(ethers.utils.toUtf8Bytes("MINTER_ROLE")),
       owner.address
     );
-    await token.mint(beneficiary.address, ethers.utils.parseEther("1"));
+    await token.mint(beneficiary.address, fromEther(1));
     const balance = await token.balanceOf(beneficiary.address);
-    expect(ethers.utils.formatEther(balance)).to.equal("1.0");
+    expect(toEther(balance)).to.equal("1.0");
   });
 });

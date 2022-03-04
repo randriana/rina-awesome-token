@@ -2,6 +2,7 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { expect } from "chai";
 import { ethers } from "hardhat";
 import { Token, Swap } from "../typechain";
+import { fromEther, toEther } from "./utils/format";
 
 const DAIaddress = "0x6B175474E89094C44Da98b954EedeAC495271d0F";
 const SwapRouter = "0xE592427A0AEce92De3Edee1F18E0157C05861564";
@@ -10,6 +11,7 @@ describe("Swap", function () {
   let swap: Swap;
   let buyer: SignerWithAddress;
   let dai: Token;
+  // eslint-disable-next-line no-unused-vars
   let owner: SignerWithAddress;
 
   before(async () => {
@@ -25,7 +27,7 @@ describe("Swap", function () {
     await swap.deployed();
 
     const tx = await swap.swapETH({
-      value: ethers.utils.parseEther("0.1").toString(),
+      value: fromEther(0.1).toString(),
     });
 
     await tx.wait();
@@ -33,6 +35,6 @@ describe("Swap", function () {
 
   it("owner should receive correct amount of RISC", async function () {
     const daiBalance = await dai.balanceOf(buyer.address);
-    expect(Number(ethers.utils.formatEther(daiBalance))).to.be.gt(600);
+    expect(Number(toEther(daiBalance))).to.be.gt(600);
   });
 });
