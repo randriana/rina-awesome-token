@@ -8,7 +8,7 @@ import "@openzeppelin/contracts/governance/extensions/GovernorVotes.sol";
 import "@openzeppelin/contracts/governance/extensions/GovernorTimelockControl.sol";
 
 /// @custom:security-contact rina@andriana.no
-contract AwesomeGovernor is Governor, GovernorSettings, GovernorCountingSimple, GovernorVotes, GovernorTimelockControl {
+contract GovernorContract is Governor, GovernorSettings, GovernorCountingSimple, GovernorVotes, GovernorTimelockControl {
     constructor(IVotes _token, TimelockController _timelock)
         Governor("AwesomeGovernor")
         GovernorSettings(6545 /* 1 day */, 6545 /* 1 day */, 100000e18)

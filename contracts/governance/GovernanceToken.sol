@@ -6,7 +6,11 @@ import "@openzeppelin/contracts/token/ERC20/extensions/draft-ERC20Permit.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Votes.sol";
 
 contract GovernanceToken is ERC20, ERC20Permit, ERC20Votes {
-    constructor() ERC20("AwesomeGov", "AWEG") ERC20Permit("AwesomeGov") {}
+    uint256 public maxSupply = 100000 * 1 ether;
+
+    constructor() ERC20("AwesomeGov", "AWEG") ERC20Permit("AwesomeGov") {
+        _mint(msg.sender, maxSupply);
+    }
 
     // The following functions are overrides required by Solidity.
 

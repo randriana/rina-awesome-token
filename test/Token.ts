@@ -1,14 +1,14 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { expect } from "chai";
+import { Contract } from "ethers";
 import { ethers } from "hardhat";
-import { Token } from "../typechain";
 import { fromEther, toEther } from "./utils/format";
 
 const tokenName = "Rina Super Coin";
 const tokenSymbol = "RISC";
 
 describe("Token", function () {
-  let token: Token;
+  let token: Contract;
   let owner: SignerWithAddress;
   let beneficiary: SignerWithAddress;
 

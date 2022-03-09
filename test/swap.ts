@@ -1,15 +1,15 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { expect } from "chai";
+import { Contract } from "ethers";
 import { ethers } from "hardhat";
-import { Token, Swap } from "../typechain";
 import { fromEther, toEther } from "./utils/format";
 
 const DAIaddress = "0x6B175474E89094C44Da98b954EedeAC495271d0F";
 const SwapRouter = "0xE592427A0AEce92De3Edee1F18E0157C05861564";
 
 describe("Swap", function () {
-  let swap: Swap;
-  let dai: Token;
+  let swap;
+  let dai: Contract;
   // eslint-disable-next-line no-unused-vars
   let owner: SignerWithAddress;
 

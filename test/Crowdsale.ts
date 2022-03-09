@@ -1,20 +1,21 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { expect } from "chai";
+import { Contract } from "ethers";
 import { ethers } from "hardhat";
-import { Crowdsale, Swap, Token } from "../typechain";
 import { fromEther, toEther } from "./utils/format";
 import { resetTokenBalance } from "./utils/utils";
 
 const tokenName = "Rina Super Coin";
 const tokenSymbol = "RISC";
 const SwapRouter = "0xE592427A0AEce92De3Edee1F18E0157C05861564";
+const Quoter = "0xb27308f9F90D607463bb33eA1BeBb41C27CE5AB6";
 const DAIaddress = "0x6B175474E89094C44Da98b954EedeAC495271d0F";
 
 describe("Crowdsale", () => {
-  let token: Token;
-  let dai: Token;
-  let crowdsale: Crowdsale;
-  let swap: Swap;
+  let token: Contract;
+  let dai: Contract;
+  let crowdsale: Contract;
+  let swap;
   let owner: SignerWithAddress;
   let buyer: SignerWithAddress;
   let treasury: SignerWithAddress;
@@ -25,7 +26,7 @@ describe("Crowdsale", () => {
     const Swap = await ethers.getContractFactory("Swap");
     [owner, buyer, treasury] = await ethers.getSigners();
 
-    swap = await Swap.deploy(SwapRouter);
+    swap = await Swap.deploy(SwapRouter, Quoter);
     token = await Token.deploy(tokenName, tokenSymbol);
     crowdsale = await Crowdsale.deploy(
       treasury.address,
