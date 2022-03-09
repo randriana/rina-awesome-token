@@ -6,6 +6,7 @@ import { fromEther, toEther } from "./utils/format";
 
 const DAIaddress = "0x6B175474E89094C44Da98b954EedeAC495271d0F";
 const SwapRouter = "0xE592427A0AEce92De3Edee1F18E0157C05861564";
+const Quoter = "0xb27308f9F90D607463bb33eA1BeBb41C27CE5AB6";
 
 describe("Swap", function () {
   let swap;
@@ -21,7 +22,7 @@ describe("Swap", function () {
     const Token = await ethers.getContractFactory("Token");
     dai = await Token.attach(DAIaddress);
 
-    swap = await Swap.deploy(SwapRouter);
+    swap = await Swap.deploy(SwapRouter, Quoter);
 
     await swap.deployed();
 
