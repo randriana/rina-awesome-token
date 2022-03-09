@@ -3,9 +3,11 @@ import * as dotenv from "dotenv";
 import { HardhatUserConfig, task } from "hardhat/config";
 import "@nomiclabs/hardhat-etherscan";
 import "@nomiclabs/hardhat-waffle";
+import "@nomiclabs/hardhat-ethers";
 import "@typechain/hardhat";
 import "hardhat-gas-reporter";
 import "solidity-coverage";
+import "hardhat-deploy";
 
 dotenv.config();
 
@@ -41,27 +43,27 @@ const config: HardhatUserConfig = {
           ? [process.env.PERSONAL_PRIVATE_KEY]
           : [],
     },
-    hardhat: {
-      forking: {
-        url: process.env.FORK_URI !== undefined ? process.env.FORK_URI : "",
-        blockNumber: 14306438,
-      },
-      accounts: [
-        {
-          privateKey: process.env.PERSONAL_PRIVATE_KEY ?? "",
-          balance: (10 * Math.pow(10, 18)).toString(),
-        },
-        {
-          privateKey: process.env.HORDE_PRIVATE_KEY ?? "",
-          balance: (10 * Math.pow(10, 18)).toString(),
-        },
-        {
-          privateKey:
-            "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",
-          balance: (10 * Math.pow(10, 18)).toString(),
-        },
-      ],
-    },
+    // hardhat: {
+    //   forking: {
+    //     url: process.env.FORK_URI !== undefined ? process.env.FORK_URI : "",
+    //     blockNumber: 14306438,
+    //   },
+    //   accounts: [
+    //     {
+    //       privateKey: process.env.PERSONAL_PRIVATE_KEY ?? "",
+    //       balance: (10 * Math.pow(10, 18)).toString(),
+    //     },
+    //     {
+    //       privateKey: process.env.HORDE_PRIVATE_KEY ?? "",
+    //       balance: (10 * Math.pow(10, 18)).toString(),
+    //     },
+    //     {
+    //       privateKey:
+    //         "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",
+    //       balance: (10 * Math.pow(10, 18)).toString(),
+    //     },
+    //   ],
+    // },
   },
   gasReporter: {
     enabled: process.env.REPORT_GAS !== undefined,
@@ -69,6 +71,12 @@ const config: HardhatUserConfig = {
   },
   etherscan: {
     apiKey: process.env.ETHERSCAN_API_KEY,
+  },
+  namedAccounts: {
+    deployer: {
+      default: 0, // here this will by default take the first account as deployer
+      1: 0, // similarly on mainnet it will take the first account as deployer. Note though that depending on how hardhat network are configured, the account 0 on one network can be different than on another
+    },
   },
 };
 
