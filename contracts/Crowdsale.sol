@@ -115,7 +115,7 @@ contract Crowdsale is Context, ReentrancyGuard, AccessControl{
      * another `nonReentrant` function.
      * @param beneficiary Recipient of the token purchase
      */
-    function buyTokens(address beneficiary) public nonReentrant payable {        
+    function buyTokens(address beneficiary) external nonReentrant payable {        
         _preValidatePurchase(beneficiary, msg.value);
 
         uint256 swappedAmount = _swapETH(msg.value);

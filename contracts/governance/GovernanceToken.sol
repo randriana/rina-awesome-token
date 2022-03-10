@@ -4,15 +4,24 @@ pragma solidity ^0.8.4;
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/draft-ERC20Permit.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Votes.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Snapshot.sol";
 
-contract GovernanceToken is ERC20, ERC20Permit, ERC20Votes {
+contract GovernanceToken is ERC20, ERC20Permit, ERC20Votes, ERC20Snapshot {
     uint256 public maxSupply = 100000 * 1 ether;
 
-    constructor() ERC20("AwesomeGov", "AWEG") ERC20Permit("AwesomeGov") {
+    constructor() ERC20("AwesomeGov", "AWEG") ERC20Permit("AwesomeGov"){
         _mint(msg.sender, maxSupply);
     }
 
     // The following functions are overrides required by Solidity.
+
+    function _beforeTokenTransfer(
+        address from,
+        address to,
+        uint256 amount
+    ) internal override(ERC20, ERC20Snapshot) {
+        super._beforeTokenTransfer(from, to, amount);
+    }
 
     function _afterTokenTransfer(address from, address to, uint256 amount)
         internal
