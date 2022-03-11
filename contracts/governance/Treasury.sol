@@ -11,21 +11,21 @@ contract Treasury is Ownable {
     address public releaseFundMasterContract;
     Token public token;
     GovernanceToken public governanceToken;
-    uint256 public refundTime;
+    uint256 public refundDelay;
     uint256 public withdrawDelay;
     uint256 public currentSnapshotId;
     address public currentReleaseFundContractAddress;
     uint256 public maxReleaseAmount;
     uint256 public maxDonationAmount;
 
-    event Release(uint256 amount, uint256 snapshotId, uint256 refundTime, uint256 withdrawDelay, address releaseFundContractAddress);
+    event Release(uint256 amount, uint256 snapshotId, uint256 refundDelay, uint256 withdrawDelay, address releaseFundContractAddress);
     event Donate(address to, uint256 amount);
 
-    constructor(address _releaseFundMasterContract, GovernanceToken _governanceToken, Token _token, uint256 _refundTime, uint256 _withdrawDelay, uint256 _maxReleaseAmout, uint256 _maxDonationAmount) {
+    constructor(address _releaseFundMasterContract, GovernanceToken _governanceToken, Token _token, uint256 _refundDelay, uint256 _withdrawDelay, uint256 _maxReleaseAmout, uint256 _maxDonationAmount) {
         releaseFundMasterContract = _releaseFundMasterContract;
         token = _token;
         governanceToken = _governanceToken;
-        refundTime = _refundTime;
+        refundDelay = _refundDelay;
         withdrawDelay = _withdrawDelay;
         currentSnapshotId = 0;
         currentReleaseFundContractAddress = address(0);
@@ -46,13 +46,13 @@ contract Treasury is Ownable {
 
         token.transfer(cloneAddress, amount);
 
-        rFund.init(snapshotId, governanceToken, token, refundTime, withdrawAllowedAt);
+        rFund.init(snapshotId, governanceToken, token, refundDelay, withdrawAllowedAt);
         releaseFunds.push(rFund);
 
         currentSnapshotId = snapshotId;
         currentReleaseFundContractAddress = cloneAddress;
 
-        emit Release(amount, snapshotId, refundTime, withdrawDelay, cloneAddress);
+        emit Release(amount, snapshotId, refundDelay, withdrawDelay, cloneAddress);
     }
 
     function donate(address to, uint256 amount) external onlyOwner() {
@@ -63,8 +63,8 @@ contract Treasury is Ownable {
         emit Donate(to, amount);
     }
 
-    function setRefundTime(uint256 _refundTime) external onlyOwner() {
-        refundTime = _refundTime;
+    function setRefundTime(uint256 _refundDelay) external onlyOwner() {
+        refundDelay = _refundDelay;
     }
 
     function setWithdrawDelay(uint256 _withdrawDelay) external onlyOwner() {

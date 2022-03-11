@@ -1,5 +1,6 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
+import { fromEther } from "../test/utils/format";
 
 const deployToken: DeployFunction = async function (
   hre: HardhatRuntimeEnvironment
@@ -7,10 +8,10 @@ const deployToken: DeployFunction = async function (
   const { getNamedAccounts, deployments } = hre;
 
   const { deploy } = deployments;
-  const { deployer } = await getNamedAccounts();
+  const { admin } = await getNamedAccounts();
   await deploy("Token", {
-    from: deployer,
-    args: ["Rina Super Coin", "RISC"],
+    from: admin,
+    args: ["Token", "TK", fromEther(1)],
     log: true,
     waitConfirmations: 1,
   });

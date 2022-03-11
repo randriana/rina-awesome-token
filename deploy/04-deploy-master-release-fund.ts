@@ -1,21 +1,21 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
-import { fromEther } from "../test/utils/format";
 
-const deployGovernanceToken: DeployFunction = async function (
+const deployMasterReleaseFund: DeployFunction = async function (
   hre: HardhatRuntimeEnvironment
 ) {
   const { getNamedAccounts, deployments } = hre;
 
   const { deploy } = deployments;
   const { admin } = await getNamedAccounts();
-  await deploy("GovernanceToken", {
+
+  await deploy("ReleaseFund", {
     from: admin,
-    args: [fromEther(100_000)],
+    args: [],
     log: true,
     waitConfirmations: 1,
   });
 };
 
-export default deployGovernanceToken;
-deployGovernanceToken.tags = ["GovernanceToken"];
+export default deployMasterReleaseFund;
+deployMasterReleaseFund.tags = ["MasterReleaseFund"];

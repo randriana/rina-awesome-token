@@ -8,16 +8,16 @@ import { moveBlocks } from "../../utils/move-blocks";
 const setupTest = deployments.createFixture(
   async ({ deployments, getNamedAccounts, ethers }) => {
     await deployments.fixture();
-    const { deployer } = await getNamedAccounts();
+    const { admin } = await getNamedAccounts();
     const governanceToken: GovernanceToken = await ethers.getContract(
       "GovernanceToken",
-      deployer
+      admin
     );
-    const timelock = ethers.getContract("Timelock", deployer);
-    const governorContract = ethers.getContract("GovernorContract", deployer);
+    const timelock = ethers.getContract("Timelock", admin);
+    const governorContract = ethers.getContract("GovernorContract", admin);
 
     return {
-      deployer,
+      admin,
       governanceToken,
       timelock,
       governorContract,
@@ -27,8 +27,8 @@ const setupTest = deployments.createFixture(
 
 describe("Voting process", function () {
   it("Should be able to propose", async () => {
-    const { deployer, governanceToken } = await setupTest();
-    await governanceToken.delegate(deployer);
+    const { admin, governanceToken } = await setupTest();
+    await governanceToken.delegate(admin);
 
     // const encodedFunctionCall = box.interface.encodeFunctionData("", [NEW_STORE_VALUE])
   });

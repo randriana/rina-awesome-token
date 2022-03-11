@@ -1,22 +1,19 @@
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { expect } from "chai";
-import { Contract } from "ethers";
-import { ethers } from "hardhat";
+import { ethers, deployments, getNamedAccounts } from "hardhat";
+import { Token } from "../typechain";
 import { fromEther, toEther } from "./utils/format";
 
-const tokenName = "Rina Super Coin";
-const tokenSymbol = "RISC";
+const tokenName = "Token";
+const tokenSymbol = "TK";
 
 describe("Token", function () {
-  let token: Contract;
-  let owner: SignerWithAddress;
-  let beneficiary: SignerWithAddress;
+  let token: Token;
 
   beforeEach(async () => {
-    const Token = await ethers.getContractFactory("Token");
-    [owner, beneficiary] = await ethers.getSigners();
+    const { admin } = await getNamedAccounts();
 
-    token = await Token.deploy(tokenName, tokenSymbol);
+    await deployments.fixture(["Token"]);
+    token = await ethers.getContract("Token", admin);
   });
 
   it("Should get correct initial parameters", async function () {
@@ -29,12 +26,14 @@ describe("Token", function () {
   });
 
   it("Should mint correct amount to beneficiary", async () => {
+    const { admin, mockUser } = await getNamedAccounts();
+
     await token.grantRole(
       ethers.utils.keccak256(ethers.utils.toUtf8Bytes("MINTER_ROLE")),
-      owner.address
+      admin
     );
-    await token.mint(beneficiary.address, fromEther(1));
-    const balance = await token.balanceOf(beneficiary.address);
+    await token.mint(mockUser, fromEther(1));
+    const balance = await token.balanceOf(mockUser);
     expect(toEther(balance)).to.equal("1.0");
   });
 });

@@ -65,7 +65,7 @@ contract Crowdsale is Context, ReentrancyGuard, AccessControl{
         require(wallet != address(0), "Crowdsale: wallet is the zero address");
         require(address(token) != address(0), "Crowdsale: token is the zero address");        
         require(initialRate > 0, "Rate cannot be 0");
-        require(treasury != address(0), "Treasury is zero address");
+        require(_treasury != address(0), "Treasury is zero address");
         
         _wallet = wallet;
         _token = token;        
@@ -204,7 +204,7 @@ contract Crowdsale is Context, ReentrancyGuard, AccessControl{
         return _swap.swapETH{ value: amount}();
     }
 
-    function _calculateFee(uint256 amount) private view returns (uint256) {
-        return amount * _mintingFee;
+    function _calculateFee(uint256 amount) private view returns (uint256) {        
+        return amount * _mintingFee / 1 ether;
     }
 }

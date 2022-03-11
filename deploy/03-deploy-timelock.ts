@@ -7,9 +7,9 @@ const deployTimelock: DeployFunction = async function (
   const { getNamedAccounts, deployments } = hre;
 
   const { deploy } = deployments;
-  const { deployer } = await getNamedAccounts();
+  const { admin } = await getNamedAccounts();
   await deploy("Timelock", {
-    from: deployer,
+    from: admin,
     args: [3600, [], []],
     log: true,
     waitConfirmations: 1,

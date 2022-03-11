@@ -1,40 +1,26 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { expect } from "chai";
 import { Contract } from "ethers";
-import { ethers } from "hardhat";
+import { ethers, getNamedAccounts, deployments } from "hardhat";
+import { Token, Treasury, Crowdsale } from "../typechain";
 import { fromEther, toEther } from "./utils/format";
 import { resetTokenBalance } from "./utils/utils";
 
-const tokenName = "Rina Super Coin";
-const tokenSymbol = "RISC";
-const SwapRouter = "0xE592427A0AEce92De3Edee1F18E0157C05861564";
-const Quoter = "0xb27308f9F90D607463bb33eA1BeBb41C27CE5AB6";
 const DAIaddress = "0x6B175474E89094C44Da98b954EedeAC495271d0F";
 
 describe("Crowdsale", () => {
-  let token: Contract;
-  let dai: Contract;
-  let crowdsale: Contract;
-  let swap;
-  let owner: SignerWithAddress;
-  let buyer: SignerWithAddress;
-  let treasury: SignerWithAddress;
+  let token: Token;
+  let crowdsale: Crowdsale;
+  let dai: Token;
 
   before(async () => {
-    const Token = await ethers.getContractFactory("Token");
-    const Crowdsale = await ethers.getContractFactory("Crowdsale");
-    const Swap = await ethers.getContractFactory("Swap");
-    [owner, buyer, treasury] = await ethers.getSigners();
+    const { admin } = await getNamedAccounts();
 
-    swap = await Swap.deploy(SwapRouter, Quoter);
-    token = await Token.deploy(tokenName, tokenSymbol);
-    crowdsale = await Crowdsale.deploy(
-      treasury.address,
-      token.address,
-      ethers.constants.WeiPerEther,
-      swap.address
-    );
-    dai = await Token.attach(DAIaddress);
+    await deployments.fixture();
+
+    token = await ethers.getContract("Token", admin);
+    crowdsale = await ethers.getContract("Crowdsale", admin);
+    dai = await ethers.getContractAt("Token", DAIaddress);
   });
 
   describe("Deployment", () => {
@@ -44,44 +30,48 @@ describe("Crowdsale", () => {
     it("Should have correct token", async () => {
       expect(await crowdsale.token()).to.equal(token.address);
     });
-    it("Should have correct treasury wallet", async () => {
-      expect(await crowdsale.wallet()).to.equal(treasury.address);
+    it("Should have correct wallet", async () => {
+      const { horde } = await getNamedAccounts();
+      expect(await crowdsale.wallet()).to.equal(horde);
     });
   });
 
   describe("Minting", () => {
     before(async () => {
+      const { mockUser } = await getNamedAccounts();
       await token.grantRole(
         ethers.utils.keccak256(ethers.utils.toUtf8Bytes("MINTER_ROLE")),
         crowdsale.address
       );
-      await crowdsale.buyTokens(buyer.address, {
-        value: fromEther(1).toString(),
+      await crowdsale.buyTokens(mockUser, {
+        value: fromEther(0.338868).toString(),
       });
     });
 
     it("Buyer should receive correct amount of tokens", async () => {
-      const balance = await token.balanceOf(buyer.address);
-      expect(Number(toEther(balance))).to.be.closeTo(2951, 0.8);
+      const { mockUser } = await getNamedAccounts();
+      const balance = await token.balanceOf(mockUser);
+      expect(Number(toEther(balance))).to.be.closeTo(970, 0.3);
     });
 
     it("Treasury should receive correct amount of ether", async () => {
-      const daiBalance = await dai.balanceOf(treasury.address);
-      expect(Number(toEther(daiBalance))).to.be.closeTo(2951, 0.8);
+      const { horde } = await getNamedAccounts();
+      const daiBalance = await dai.balanceOf(horde);
+      expect(Number(toEther(daiBalance))).to.be.closeTo(1395, 0.3);
     });
   });
 
   describe("Rate", () => {
     before(async () => {
+      const { admin } = await getNamedAccounts();
       await token.grantRole(
         ethers.utils.keccak256(ethers.utils.toUtf8Bytes("MINTER_ROLE")),
         crowdsale.address
       );
       await crowdsale.grantRole(
         ethers.utils.keccak256(ethers.utils.toUtf8Bytes("MAINTAINER_ROLE")),
-        owner.address
+        admin
       );
-      await resetTokenBalance(buyer, token.address);
     });
 
     it("Should set new rate", async () => {
@@ -93,14 +83,15 @@ describe("Crowdsale", () => {
     });
 
     it("Should mint correct number of tokens with new rate", async () => {
+      const { mockUser } = await getNamedAccounts();
       await crowdsale.setRate(fromEther(3.14));
 
-      await crowdsale.buyTokens(buyer.address, {
+      await crowdsale.buyTokens(mockUser, {
         value: fromEther(1).toString(),
       });
 
-      const balance = await token.balanceOf(buyer.address);
-      expect(Number(toEther(balance))).to.be.closeTo(9268, 0.4);
+      const balance = await token.balanceOf(mockUser);
+      expect(Number(toEther(balance))).to.be.closeTo(9960, 0.4);
     });
   });
 });

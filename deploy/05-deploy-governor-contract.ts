@@ -7,12 +7,12 @@ const deployGovernorContract: DeployFunction = async function (
   const { getNamedAccounts, deployments } = hre;
 
   const { deploy, get } = deployments;
-  const { deployer } = await getNamedAccounts();
+  const { admin } = await getNamedAccounts();
   const governanceToken = await get("GovernanceToken");
   const timeLock = await get("Timelock");
 
   await deploy("GovernorContract", {
-    from: deployer,
+    from: admin,
     args: [governanceToken.address, timeLock.address],
     log: true,
     waitConfirmations: 1,
