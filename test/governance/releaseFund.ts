@@ -61,7 +61,8 @@ describe("ReleaseFund", function () {
         snapshotId,
         governanceToken.address,
         token.address,
-        blockNumber + 1
+        blockNumber,
+        blockNumber
       )
     ).wait();
 

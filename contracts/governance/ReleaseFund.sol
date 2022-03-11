@@ -1,6 +1,7 @@
 pragma solidity ^0.8.0;
 
 import "./GovernanceToken.sol";
+
 import "../Token.sol";
 
 contract ReleaseFund {
@@ -8,6 +9,7 @@ contract ReleaseFund {
     uint256 public releasedAmount;
     uint256 public refundTime;
     address public parentTreasury;
+    uint256 public withdrawAllowedAt;
 
     GovernanceToken public govToken;
     Token public token;
@@ -16,9 +18,9 @@ contract ReleaseFund {
 
     event FundWithdrawn(address receiver, uint256 amount);
     event RefundRemaining(uint256 remainingAmount);
-    event ReleaseFundInitialised(uint256 amount, uint256 snapshotId, uint256 refundTime);
+    event ReleaseFundInitialised(uint256 amount, uint256 snapshotId, uint256 refundTime, uint256 withdrawAllowedAt);
 
-    function init(uint256 _govTokenSnapshopId, GovernanceToken _govToken, Token _token, uint256 _refundTime) external {
+    function init(uint256 _govTokenSnapshopId, GovernanceToken _govToken, Token _token, uint256 _refundTime, uint256 _withdrawAllowedAt) external {
         require(_token.balanceOf(address(this)) > 0, "Has not received funds yet");
 
         releasedAmount = _token.balanceOf(address(this));
@@ -27,13 +29,16 @@ contract ReleaseFund {
         token = _token;
         refundTime = _refundTime;
         parentTreasury = msg.sender;
+        withdrawAllowedAt = _withdrawAllowedAt;
 
-        emit ReleaseFundInitialised(releasedAmount, govTokenSnapshopId, refundTime);
+        emit ReleaseFundInitialised(releasedAmount, govTokenSnapshopId, refundTime, withdrawAllowedAt);
     }
 
     function withdraw() external {
         address receiver = msg.sender;
 
+        require(withdrawAllowedAt > block.number, "Withdraw not allowed yet");
+        require(govToken.balanceOfAt(receiver, govTokenSnapshopId) > 0, "User cannot withdraw any funds");
         require(hasWithdrawnFunds[receiver] == false, "Has already withdrawn funds");
         require(token.balanceOf(address(this)) > 0, "Fund balance is 0");
 

@@ -13,12 +13,8 @@ contract GovernanceToken is ERC20, ERC20Permit, ERC20Votes, ERC20Snapshot {
 
     // The following functions are overrides required by Solidity.
 
-    function snapshot() external {
-        _snapshot();
-    }
-
-    function getCurrentSnapshotId() external view returns (uint256){
-        return _getCurrentSnapshotId();
+    function snapshot() external returns(uint256) {
+        return _snapshot();
     }
 
     function _beforeTokenTransfer(
