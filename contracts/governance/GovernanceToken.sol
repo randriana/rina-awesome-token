@@ -7,13 +7,19 @@ import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Votes.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Snapshot.sol";
 
 contract GovernanceToken is ERC20, ERC20Permit, ERC20Votes, ERC20Snapshot {
-    uint256 public maxSupply = 100000 * 1 ether;
-
-    constructor() ERC20("AwesomeGov", "AWEG") ERC20Permit("AwesomeGov"){
-        _mint(msg.sender, maxSupply);
+    constructor(uint256 initialSupply) ERC20("AwesomeGov", "AWEG") ERC20Permit("AwesomeGov"){
+        _mint(msg.sender, initialSupply);
     }
 
     // The following functions are overrides required by Solidity.
+
+    function snapshot() external {
+        _snapshot();
+    }
+
+    function getCurrentSnapshotId() external view returns (uint256){
+        return _getCurrentSnapshotId();
+    }
 
     function _beforeTokenTransfer(
         address from,

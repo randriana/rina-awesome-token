@@ -14,7 +14,7 @@ contract Treasury{
 
     function createChild() public {
         ReleaseFund rFund = ReleaseFund(Clones.clone(releaseFundMasterContract));
-        rFund.init();
+        //rFund.init();
         releaseFunds.push(rFund);
     }
 }
