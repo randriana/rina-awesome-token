@@ -16,10 +16,12 @@ contract Treasury is Ownable {
     uint256 public currentSnapshotId;
     address public currentReleaseFundContractAddress;
     uint256 public maxReleaseAmount;
+    uint256 public maxDonationAmount;
 
     event Release(uint256 amount, uint256 snapshotId, uint256 refundTime, uint256 withdrawDelay, address releaseFundContractAddress);
+    event Donate(address to, uint256 amount);
 
-    constructor(address _releaseFundMasterContract, GovernanceToken _governanceToken, Token _token, uint256 _refundTime, uint256 _withdrawDelay, uint256 _maxReleaseAmout) {
+    constructor(address _releaseFundMasterContract, GovernanceToken _governanceToken, Token _token, uint256 _refundTime, uint256 _withdrawDelay, uint256 _maxReleaseAmout, uint256 _maxDonationAmount) {
         releaseFundMasterContract = _releaseFundMasterContract;
         token = _token;
         governanceToken = _governanceToken;
@@ -28,11 +30,12 @@ contract Treasury is Ownable {
         currentSnapshotId = 0;
         currentReleaseFundContractAddress = address(0);
         maxReleaseAmount = _maxReleaseAmout;
+        maxDonationAmount = _maxDonationAmount;
     }
 
     function release(uint256 amount) external onlyOwner() {
         require(amount <= maxReleaseAmount, "Amount exceeded limit");
-        require(token.balanceOf(address(this)) >= amount, "Amount exceeded balance");
+        require(amount <=token.balanceOf(address(this)), "Amount exceeded balance");
 
         uint256 snapshotId = governanceToken.snapshot();        
         uint256 withdrawAllowedAt = block.number + withdrawDelay;
@@ -52,6 +55,14 @@ contract Treasury is Ownable {
         emit Release(amount, snapshotId, refundTime, withdrawDelay, cloneAddress);
     }
 
+    function donate(address to, uint256 amount) external onlyOwner() {
+        require(amount <= maxDonationAmount, "Amount exceeded limit");
+        require(amount <= token.balanceOf(address(this)), "Amount exceeded balance");
+
+        token.transfer(to, amount);
+        emit Donate(to, amount);
+    }
+
     function setRefundTime(uint256 _refundTime) external onlyOwner() {
         refundTime = _refundTime;
     }
@@ -62,6 +73,10 @@ contract Treasury is Ownable {
     
     function setMaxReleaseAmount(uint256 _maxReleaseAmount) external onlyOwner() {
         maxReleaseAmount = _maxReleaseAmount;
+    }
+
+    function setMaxDonationAmount(uint256 _donationAmount) external onlyOwner() {
+        maxDonationAmount = _donationAmount;
     }
 
     function getReleaseFundContractAddress(uint256 snapshopId) public view returns(address) {
