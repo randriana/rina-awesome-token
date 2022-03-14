@@ -1,6 +1,6 @@
 pragma solidity ^0.8.0;
 
-contract ERC20WithFee {
+contract WithFee {
     uint256 internal _transferFee;
     uint256 internal _mintingFee;
 
@@ -12,16 +12,25 @@ contract ERC20WithFee {
         Fixed
     }
 
-    constructor(uint256 transferFee, uint256 mintingFee, FeeType transferFeeType, FeeType mintingFeeType) {
+    constructor(
+        uint256 transferFee,
+        uint256 mintingFee,
+        FeeType transferFeeType,
+        FeeType mintingFeeType
+    ) {
         _transferFee = transferFee;
         _mintingFee = mintingFee;
         _transferFeeType = transferFeeType;
         _mintingFeeType = mintingFeeType;
     }
 
-    function _calculateMintingFee(uint256 amount) internal view returns(uint256) {
-        if(_mintingFeeType == FeeType.Percentage) {
-            return amount * _mintingFee / 1 ether;
+    function _calculateMintingFee(uint256 amount)
+        internal
+        view
+        returns (uint256)
+    {
+        if (_mintingFeeType == FeeType.Percentage) {
+            return (amount * _mintingFee) / 1 ether;
         }
         return _mintingFee;
     }
@@ -34,9 +43,13 @@ contract ERC20WithFee {
         _mintingFeeType = feeType;
     }
 
-    function _calculateTransferFee(uint256 amount) internal view returns(uint256) {
-        if(_transferFeeType == FeeType.Percentage) {
-            return amount * _transferFee / 1 ether;
+    function _calculateTransferFee(uint256 amount)
+        internal
+        view
+        returns (uint256)
+    {
+        if (_transferFeeType == FeeType.Percentage) {
+            return (amount * _transferFee) / 1 ether;
         }
         return _transferFee;
     }

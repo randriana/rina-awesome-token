@@ -5,11 +5,11 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
-import "./ERC20WithFee.sol";
+import "./WithFee.sol";
 
 import "hardhat/console.sol";
 
-contract Token is ERC20, AccessControl, ERC20WithFee, Pausable {
+contract Token is ERC20, AccessControl, WithFee, Pausable {
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
     bytes32 public constant MAINTAINER_ROLE = keccak256("MAINTAINER_ROLE");
     bytes32 public constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
@@ -27,7 +27,7 @@ contract Token is ERC20, AccessControl, ERC20WithFee, Pausable {
         FeeType mintingFeeType
     )
         ERC20(name, symbol)
-        ERC20WithFee(transferFee, mintingFee, transferFeeType, mintingFeeType)
+        WithFee(transferFee, mintingFee, transferFeeType, mintingFeeType)
     {
         require(_feeCollector != address(0), "feeCollector is zero address");
 
