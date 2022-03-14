@@ -4,6 +4,8 @@ import "./GovernanceToken.sol";
 
 import "../Token.sol";
 
+import "hardhat/console.sol";
+
 contract ReleaseFund {
     uint256 public govTokenSnapshopId;
     uint256 public releasedAmount;
@@ -37,7 +39,7 @@ contract ReleaseFund {
     function withdraw() external {
         address receiver = msg.sender;
 
-        require(withdrawAllowedAt > block.number, "Withdraw not allowed yet");
+        require(withdrawAllowedAt < block.number, "Withdraw not allowed yet");
         require(govToken.balanceOfAt(receiver, govTokenSnapshopId) > 0, "User cannot withdraw any funds");
         require(hasWithdrawnFunds[receiver] == false, "Has already withdrawn funds");
         require(token.balanceOf(address(this)) > 0, "Fund balance is 0");

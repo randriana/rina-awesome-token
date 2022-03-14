@@ -1,6 +1,10 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { fromEther } from "../test/utils/format";
+import {
+  TREASURY_MAX_DONATION_AMOUNT,
+  TREASURY_MAX_RELEASE_AMOUNT,
+} from "../helper-hardhat-config";
 
 const deployTreasury: DeployFunction = async function (
   hre: HardhatRuntimeEnvironment
@@ -23,8 +27,8 @@ const deployTreasury: DeployFunction = async function (
       token.address,
       blockNumber,
       blockNumber,
-      fromEther(100_000),
-      fromEther(100_000),
+      fromEther(TREASURY_MAX_RELEASE_AMOUNT),
+      fromEther(TREASURY_MAX_DONATION_AMOUNT),
     ],
     log: true,
     waitConfirmations: 1,

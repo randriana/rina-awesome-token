@@ -1,10 +1,12 @@
 import { expect } from "chai";
 import { ethers, deployments, getNamedAccounts } from "hardhat";
+import {
+  TOKEN_NAME,
+  TOKEN_SYMBOL,
+  TOTAL_TOKEN_AMOUNT,
+} from "../helper-hardhat-config";
 import { Token } from "../typechain";
 import { fromEther, toEther } from "./utils/format";
-
-const tokenName = "Token";
-const tokenSymbol = "TK";
 
 describe("Token", function () {
   let token: Token;
@@ -19,10 +21,12 @@ describe("Token", function () {
   it("Should get correct initial parameters", async function () {
     await token.deployed();
 
-    expect(await token.name()).to.equal(tokenName);
-    expect(await token.symbol()).to.equal(tokenSymbol);
+    expect(await token.name()).to.equal(TOKEN_NAME);
+    expect(await token.symbol()).to.equal(TOKEN_SYMBOL);
     expect(await token.decimals()).to.equal(18);
-    expect(await token.totalSupply()).to.equal(ethers.utils.parseEther("1"));
+    expect(await token.totalSupply()).to.equal(
+      ethers.utils.parseEther(TOTAL_TOKEN_AMOUNT.toString())
+    );
   });
 
   it("Should mint correct amount to beneficiary", async () => {

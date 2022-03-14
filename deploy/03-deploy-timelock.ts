@@ -1,5 +1,6 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
+import { TIMELOCK_DELAY } from "../helper-hardhat-config";
 
 const deployTimelock: DeployFunction = async function (
   hre: HardhatRuntimeEnvironment
@@ -10,7 +11,7 @@ const deployTimelock: DeployFunction = async function (
   const { admin } = await getNamedAccounts();
   await deploy("Timelock", {
     from: admin,
-    args: [3600, [], []],
+    args: [TIMELOCK_DELAY, [], []],
     log: true,
     waitConfirmations: 1,
   });
