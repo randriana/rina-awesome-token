@@ -35,12 +35,11 @@ describe("Crowdsale", () => {
 
   describe("Minting", () => {
     before(async () => {
-      const { mockUser } = await getNamedAccounts();
-      await token.grantRole(
-        ethers.utils.keccak256(ethers.utils.toUtf8Bytes("MINTER_ROLE")),
-        crowdsale.address
-      );
-      await crowdsale.buyTokens(mockUser, {
+      const signers = await ethers.getSigners();
+
+      crowdsale = await crowdsale.connect(signers[2]);
+
+      await crowdsale.buyTokensWithETH({
         value: fromEther(0.338868).toString(),
       });
     });
@@ -60,15 +59,9 @@ describe("Crowdsale", () => {
 
   describe("Rate", () => {
     before(async () => {
-      const { admin } = await getNamedAccounts();
-      await token.grantRole(
-        ethers.utils.keccak256(ethers.utils.toUtf8Bytes("MINTER_ROLE")),
-        crowdsale.address
-      );
-      await crowdsale.grantRole(
-        ethers.utils.keccak256(ethers.utils.toUtf8Bytes("MAINTAINER_ROLE")),
-        admin
-      );
+      // Use admin as signer
+      const signers = await ethers.getSigners();
+      crowdsale = await crowdsale.connect(signers[0]);
     });
 
     it("Should set new rate", async () => {
@@ -80,10 +73,14 @@ describe("Crowdsale", () => {
     });
 
     it("Should mint correct number of tokens with new rate", async () => {
+      const signers = await ethers.getSigners();
       const { mockUser } = await getNamedAccounts();
       await crowdsale.setRate(fromEther(3.14));
 
-      await crowdsale.buyTokens(mockUser, {
+      // Use mockUser as signer
+      crowdsale = await crowdsale.connect(signers[2]);
+
+      await crowdsale.buyTokensWithETH({
         value: fromEther(1).toString(),
       });
 
