@@ -16,6 +16,6 @@
   "files": [
     "./hardhat.config.ts",
     "./helper-hardhat-config.ts",
-    "./TokenFeeType.ts"
+    "./constants/TokenFeeType.ts"
   ]
 }
