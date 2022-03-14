@@ -4,6 +4,7 @@ import {
   TOKEN_MINTING_FEE,
   TOKEN_NAME,
   TOKEN_SYMBOL,
+  TOKEN_TRANSFER_FEE,
   TOTAL_TOKEN_AMOUNT,
 } from "../helper-hardhat-config";
 import { Token } from "../typechain";
@@ -40,5 +41,13 @@ describe("Token", function () {
     await token.mint(mockUser, fromEther(1));
     const balance = await token.balanceOf(mockUser);
     expect(Number(toEther(balance))).to.equal(1 - TOKEN_MINTING_FEE);
+  });
+
+  it("Should transfer correct amount to beneficiary", async () => {
+    const { mockUser } = await getNamedAccounts();
+
+    await token.transfer(mockUser, fromEther(1));
+    const balance = await token.balanceOf(mockUser);
+    expect(Number(toEther(balance))).to.equal(1 - TOKEN_TRANSFER_FEE);
   });
 });

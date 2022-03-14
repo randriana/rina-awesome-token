@@ -45,15 +45,26 @@ contract Token is ERC20, AccessControl, ERC20WithFee {
         _mint(to, amount);
     }
 
-    // function transfer(address to, uint256 amount) public override returns (bool) {
-    //     address owner = _msgSender();
-    //     uint256 transferFee = _calculateTransferFee(amount);
+    function transfer(address to, uint256 amount)
+        public
+        override
+        returns (bool)
+    {
+        address owner = _msgSender();
+        uint256 transferFee = _calculateTransferFee(amount);
 
-    //     amount -= transferFee;
+        amount -= transferFee;
 
-    //     _transfer(owner, feeCollector, transferFee);
-    //     _transfer(owner, to, amount);
+        _transfer(owner, feeCollector, transferFee);
+        _transfer(owner, to, amount);
 
-    //     return true;
-    // }
+        return true;
+    }
+
+    function setFeeCollector(address _feeCollector)
+        external
+        onlyRole(MAINTAINER_ROLE)
+    {
+        feeCollector = _feeCollector;
+    }
 }

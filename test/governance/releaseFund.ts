@@ -5,6 +5,7 @@ import { Token, GovernanceToken, ReleaseFund } from "../../typechain";
 import {
   MOCK_USER_GOV_SHARE,
   RELEASE_FUND_BALANCE,
+  TOKEN_TRANSFER_FEE,
   TOTAL_GOV_TOKEN_AMOUNT,
 } from "../../helper-hardhat-config";
 
@@ -56,7 +57,7 @@ describe("ReleaseFund", function () {
     });
     it("should have correct balance", async () => {
       expect(await token.balanceOf(releaseFund.address)).to.equal(
-        fromEther(RELEASE_FUND_BALANCE)
+        fromEther(RELEASE_FUND_BALANCE - TOKEN_TRANSFER_FEE)
       );
     });
   });
@@ -75,7 +76,9 @@ describe("ReleaseFund", function () {
     });
     it("should have correct user balance", async () => {
       expect(await token.balanceOf(mockUser)).to.equal(
-        fromEther(RELEASE_FUND_BALANCE * MOCK_USER_GOV_SHARE)
+        fromEther(
+          RELEASE_FUND_BALANCE * MOCK_USER_GOV_SHARE - TOKEN_TRANSFER_FEE
+        )
       );
     });
 
@@ -94,7 +97,7 @@ describe("ReleaseFund", function () {
       );
     });
 
-    it("should have correct fund balance", async function () {
+    it("should have correct fund balance after refund", async function () {
       expect(await token.balanceOf(releaseFund.address)).to.equal(0);
     });
   });

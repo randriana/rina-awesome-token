@@ -5,6 +5,7 @@ import {
   TREASURY_MAX_DONATION_AMOUNT,
   TREASURY_MAX_RELEASE_AMOUNT,
 } from "../helper-hardhat-config";
+import { Token } from "../typechain";
 
 const deployTreasury: DeployFunction = async function (
   hre: HardhatRuntimeEnvironment
@@ -15,11 +16,11 @@ const deployTreasury: DeployFunction = async function (
   const { admin } = await getNamedAccounts();
   const masterReleaseFund = await get("ReleaseFund");
   const governanceToken = await get("GovernanceToken");
-  const token = await get("Token");
+  const token = await ethers.getContract("Token", admin);
 
   const blockNumber = await ethers.provider.getBlockNumber();
 
-  await deploy("Treasury", {
+  const treasury = await deploy("Treasury", {
     from: admin,
     args: [
       masterReleaseFund.address,
@@ -33,6 +34,13 @@ const deployTreasury: DeployFunction = async function (
     log: true,
     waitConfirmations: 1,
   });
+
+  await token.grantRole(
+    ethers.utils.keccak256(ethers.utils.toUtf8Bytes("MAINTAINER_ROLE")),
+    admin
+  );
+
+  await token.setFeeCollector(treasury.address);
 };
 
 export default deployTreasury;

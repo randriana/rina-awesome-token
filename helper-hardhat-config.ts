@@ -15,6 +15,6 @@ export const TREASURY_MAX_RELEASE_AMOUNT = 100_000;
 export const TREASURY_MAX_DONATION_AMOUNT = 100_000;
 
 export const TOKEN_MINTING_FEE = 0.03;
-export const TOKEN_TRANSFER_FEE = 1;
+export const TOKEN_TRANSFER_FEE = 0;
 export const TOKEN_MINTING_TYPE = TokenFeeType.Percentage;
 export const TOKEN_TRANSFER_TYPE = TokenFeeType.Fixed;
