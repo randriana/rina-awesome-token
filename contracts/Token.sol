@@ -4,13 +4,15 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
+import "@openzeppelin/contracts/security/Pausable.sol";
 import "./ERC20WithFee.sol";
 
 import "hardhat/console.sol";
 
-contract Token is ERC20, AccessControl, ERC20WithFee {
+contract Token is ERC20, AccessControl, ERC20WithFee, Pausable {
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
     bytes32 public constant MAINTAINER_ROLE = keccak256("MAINTAINER_ROLE");
+    bytes32 public constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
 
     address feeCollector;
 
@@ -66,5 +68,21 @@ contract Token is ERC20, AccessControl, ERC20WithFee {
         onlyRole(MAINTAINER_ROLE)
     {
         feeCollector = _feeCollector;
+    }
+
+    function pause() external onlyRole(PAUSER_ROLE) {
+        _pause();
+    }
+
+    function unpause() external onlyRole(PAUSER_ROLE) {
+        _unpause();
+    }
+
+    function _beforeTokenTransfer(
+        address from,
+        address to,
+        uint256 amount
+    ) internal override whenNotPaused {
+        super._beforeTokenTransfer(from, to, amount);
     }
 }
