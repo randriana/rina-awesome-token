@@ -22,7 +22,7 @@ import "hardhat/console.sol";
  * the methods to add functionality. Consider using 'super' where appropriate to concatenate
  * behavior.
  */
-contract Crowdsale is Context, ReentrancyGuard, AccessControl{
+contract Crowdsale is Context, ReentrancyGuard, AccessControl {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
@@ -35,7 +35,6 @@ contract Crowdsale is Context, ReentrancyGuard, AccessControl{
     // Amount of wei raised
     uint256 private _weiRaised;
     uint256 private _rate;
-    uint256 private _mintingFee;
 
     bytes32 public constant MAINTAINER_ROLE = keccak256("MAINTAINER_ROLE");
 
@@ -44,16 +43,19 @@ contract Crowdsale is Context, ReentrancyGuard, AccessControl{
 
     Swap private _swap;
 
-
     /**
      * Event for token purchase logging
-     * @param purchaser who paid for the amountToMint     
+     * @param purchaser who paid for the amountToMint
      * @param value weis paid for purchase
      * @param amount amount of amountToMint purchased
      */
-    event TokensMinted(address indexed purchaser, uint256 value, uint256 amount);
+    event TokensMinted(
+        address indexed purchaser,
+        uint256 value,
+        uint256 amount
+    );
 
-    /**     
+    /**
      * @dev The rate is the conversion between wei and the smallest and indivisible
      * token unit. So, if you are using a rate of 1 with a ERC20Detailed token
      * with 3 decimals called TOK, 1 wei will give you 1 unit, or 0.001 TOK.
@@ -61,17 +63,25 @@ contract Crowdsale is Context, ReentrancyGuard, AccessControl{
      * @param token Address of the token being sold
      * @param initialRate Initial rate for token price
      */
-    constructor (address payable wallet, Token token, uint256 initialRate, Swap swap, uint256 mintingFee, address _treasury){        
+    constructor(
+        address payable wallet,
+        Token token,
+        uint256 initialRate,
+        Swap swap,
+        address _treasury
+    ) {
         require(wallet != address(0), "Crowdsale: wallet is the zero address");
-        require(address(token) != address(0), "Crowdsale: token is the zero address");        
+        require(
+            address(token) != address(0),
+            "Crowdsale: token is the zero address"
+        );
         require(initialRate > 0, "Rate cannot be 0");
         require(_treasury != address(0), "Treasury is zero address");
-        
+
         _wallet = wallet;
-        _token = token;        
+        _token = token;
         _rate = initialRate;
         _swap = swap;
-        _mintingFee = mintingFee;
         treasury = _treasury;
 
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
@@ -80,22 +90,18 @@ contract Crowdsale is Context, ReentrancyGuard, AccessControl{
     /**
      * @param beneficiary Recipient of the token purchase
      */
-    function buyTokens(address beneficiary) external nonReentrant payable {        
+    function buyTokens(address beneficiary) external payable nonReentrant {
         _preValidatePurchase(beneficiary, msg.value);
 
         uint256 swappedAmount = _swapETH(msg.value);
 
         _forwardFunds(swappedAmount);
-        
+
         uint256 amountToMint = _getTokenAmount(swappedAmount);
-        uint256 mintingFee = _calculateFee(amountToMint);
-        
-        amountToMint -= mintingFee;
 
         // update state
         _weiRaised = _weiRaised.add(swappedAmount);
 
-        _mint(treasury, mintingFee);
         _mint(beneficiary, amountToMint);
 
         emit TokensMinted(_msgSender(), swappedAmount, amountToMint);
@@ -105,13 +111,12 @@ contract Crowdsale is Context, ReentrancyGuard, AccessControl{
         _postValidatePurchase(beneficiary, swappedAmount);
     }
 
-
     /**
      * Note that other contracts will transfer funds with a base gas stipend
      * of 2300, which is not enough to call buyTokens. Consider calling
      * buyTokens directly when purchasing amountToMint from a contract.
      */
-    receive () external payable {}
+    receive() external payable {}
 
     /**
      * @return the token being sold.
@@ -130,7 +135,7 @@ contract Crowdsale is Context, ReentrancyGuard, AccessControl{
     /**
      * @return the number of token units a buyer gets per wei.
      */
-    function getRate() public view returns (uint256) {                
+    function getRate() public view returns (uint256) {
         return _rate;
     }
 
@@ -143,7 +148,7 @@ contract Crowdsale is Context, ReentrancyGuard, AccessControl{
      */
     function weiRaised() public view returns (uint256) {
         return _weiRaised;
-    }    
+    }
 
     /**
      * @dev Validation of an incoming purchase. Use require statements to revert state when conditions are not met.
@@ -154,8 +159,15 @@ contract Crowdsale is Context, ReentrancyGuard, AccessControl{
      * @param beneficiary Address performing the token purchase
      * @param weiAmount Value in wei involved in the purchase
      */
-    function _preValidatePurchase(address beneficiary, uint256 weiAmount) internal view virtual {
-        require(beneficiary != address(0), "Crowdsale: beneficiary is the zero address");
+    function _preValidatePurchase(address beneficiary, uint256 weiAmount)
+        internal
+        view
+        virtual
+    {
+        require(
+            beneficiary != address(0),
+            "Crowdsale: beneficiary is the zero address"
+        );
         require(weiAmount != 0, "Crowdsale: weiAmount is 0");
         this; // silence state mutability warning without generating bytecode - see https://github.com/ethereum/solidity/issues/2691
     }
@@ -166,7 +178,11 @@ contract Crowdsale is Context, ReentrancyGuard, AccessControl{
      * @param beneficiary Address performing the token purchase
      * @param weiAmount Value in wei involved in the purchase
      */
-    function _postValidatePurchase(address beneficiary, uint256 weiAmount) internal view virtual {
+    function _postValidatePurchase(address beneficiary, uint256 weiAmount)
+        internal
+        view
+        virtual
+    {
         // solhint-disable-previous-line no-empty-blocks
     }
 
@@ -176,7 +192,10 @@ contract Crowdsale is Context, ReentrancyGuard, AccessControl{
      * @param beneficiary Address receiving the amountToMint
      * @param weiAmount Value in wei involved in the purchase
      */
-    function _updatePurchasingState(address beneficiary, uint256 weiAmount) internal virtual {
+    function _updatePurchasingState(address beneficiary, uint256 weiAmount)
+        internal
+        virtual
+    {
         // solhint-disable-previous-line no-empty-blocks
     }
 
@@ -193,7 +212,7 @@ contract Crowdsale is Context, ReentrancyGuard, AccessControl{
      * @dev Determines how ETH is stored/forwarded on purchases.
      */
     function _forwardFunds(uint256 amount) private {
-        IERC20(DAI).transfer(address(_wallet), amount);        
+        IERC20(DAI).transfer(address(_wallet), amount);
     }
 
     function _mint(address to, uint256 tokenAmount) private {
@@ -201,10 +220,6 @@ contract Crowdsale is Context, ReentrancyGuard, AccessControl{
     }
 
     function _swapETH(uint256 amount) private returns (uint256) {
-        return _swap.swapETH{ value: amount}();
-    }
-
-    function _calculateFee(uint256 amount) private view returns (uint256) {        
-        return amount * _mintingFee / 1 ether;
+        return _swap.swapETH{value: amount}();
     }
 }

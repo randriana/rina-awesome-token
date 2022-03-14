@@ -1,6 +1,7 @@
 import { expect } from "chai";
 import { ethers, deployments, getNamedAccounts } from "hardhat";
 import {
+  TOKEN_MINTING_FEE,
   TOKEN_NAME,
   TOKEN_SYMBOL,
   TOTAL_TOKEN_AMOUNT,
@@ -38,6 +39,6 @@ describe("Token", function () {
     );
     await token.mint(mockUser, fromEther(1));
     const balance = await token.balanceOf(mockUser);
-    expect(toEther(balance)).to.equal("1.0");
+    expect(Number(toEther(balance))).to.equal(1 - TOKEN_MINTING_FEE);
   });
 });

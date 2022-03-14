@@ -1,10 +1,7 @@
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { expect } from "chai";
-import { Contract } from "ethers";
 import { ethers, getNamedAccounts, deployments } from "hardhat";
-import { Token, Treasury, Crowdsale } from "../typechain";
+import { Token, Crowdsale } from "../typechain";
 import { fromEther, toEther } from "./utils/format";
-import { resetTokenBalance } from "./utils/utils";
 
 const DAIaddress = "0x6B175474E89094C44Da98b954EedeAC495271d0F";
 
