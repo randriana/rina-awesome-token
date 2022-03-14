@@ -2,6 +2,7 @@ import { expect } from "chai";
 import { ethers, getNamedAccounts, deployments } from "hardhat";
 import { Token, Crowdsale } from "../typechain";
 import { fromEther, toEther } from "./utils/format";
+import { resetTokenBalance, transferTotalBalance } from "./utils/utils";
 
 const DAIaddress = "0x6B175474E89094C44Da98b954EedeAC495271d0F";
 
@@ -33,7 +34,7 @@ describe("Crowdsale", () => {
     });
   });
 
-  describe("Minting", () => {
+  describe("Buy with ETH", () => {
     before(async () => {
       const signers = await ethers.getSigners();
 
@@ -54,6 +55,38 @@ describe("Crowdsale", () => {
       const { horde } = await getNamedAccounts();
       const daiBalance = await dai.balanceOf(horde);
       expect(Number(toEther(daiBalance))).to.be.closeTo(1395, 0.3);
+    });
+  });
+
+  describe("Buy with stable coin", () => {
+    before(async () => {
+      const signers = await ethers.getSigners();
+      const horde = signers[1];
+      const mockUser = signers[2];
+
+      const crowdsale = await ethers.getContract("Crowdsale", mockUser);
+      const dai = <Token>(
+        await ethers.getContractAt("Token", DAIaddress, mockUser)
+      );
+
+      await transferTotalBalance(horde, mockUser.address, dai.address);
+      await resetTokenBalance(mockUser, token.address);
+
+      await dai.approve(crowdsale.address, fromEther(100));
+
+      await crowdsale.buyTokensWithStableCoin(fromEther(100), DAIaddress);
+    });
+
+    it("Buyer should receive correct amount of tokens", async () => {
+      const { mockUser } = await getNamedAccounts();
+      const balance = await token.balanceOf(mockUser);
+      expect(Number(toEther(balance))).to.equal(97);
+    });
+
+    it("Treasury should receive correct amount of ether", async () => {
+      const { horde } = await getNamedAccounts();
+      const daiBalance = await dai.balanceOf(horde);
+      expect(Number(toEther(daiBalance))).to.equal(100);
     });
   });
 
@@ -85,7 +118,7 @@ describe("Crowdsale", () => {
       });
 
       const balance = await token.balanceOf(mockUser);
-      expect(Number(toEther(balance))).to.be.closeTo(9960, 0.4);
+      expect(Number(toEther(balance))).to.be.closeTo(9087, 0.1);
     });
   });
 });

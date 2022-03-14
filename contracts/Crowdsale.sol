@@ -26,8 +26,7 @@ contract Crowdsale is Context, ReentrancyGuard, AccessControl {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
-    // The token being sold
-    Token private _token;
+    Token public token;
 
     // Address where funds are collected
     address payable private _wallet;
@@ -38,8 +37,11 @@ contract Crowdsale is Context, ReentrancyGuard, AccessControl {
 
     bytes32 public constant MAINTAINER_ROLE = keccak256("MAINTAINER_ROLE");
 
-    address public constant DAI = 0x6B175474E89094C44Da98b954EedeAC495271d0F;
+    IERC20 public constant DAI =
+        IERC20(0x6B175474E89094C44Da98b954EedeAC495271d0F);
     address public treasury;
+
+    mapping(IERC20 => bool) acceptedStableCoins;
 
     Swap private _swap;
 
@@ -60,55 +62,82 @@ contract Crowdsale is Context, ReentrancyGuard, AccessControl {
      * token unit. So, if you are using a rate of 1 with a ERC20Detailed token
      * with 3 decimals called TOK, 1 wei will give you 1 unit, or 0.001 TOK.
      * @param wallet Address where collected funds will be forwarded to
-     * @param token Address of the token being sold
+     * @param _token Address of the token being sold
      * @param initialRate Initial rate for token price
      */
     constructor(
         address payable wallet,
-        Token token,
+        Token _token,
         uint256 initialRate,
         Swap swap,
         address _treasury
     ) {
         require(wallet != address(0), "Crowdsale: wallet is the zero address");
         require(
-            address(token) != address(0),
+            address(_token) != address(0),
             "Crowdsale: token is the zero address"
         );
         require(initialRate > 0, "Rate cannot be 0");
         require(_treasury != address(0), "Treasury is zero address");
 
         _wallet = wallet;
-        _token = token;
+        token = _token;
         _rate = initialRate;
         _swap = swap;
         treasury = _treasury;
 
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
+
+        //Add DAI
+        acceptedStableCoins[
+            IERC20(0x6B175474E89094C44Da98b954EedeAC495271d0F)
+        ] = true;
     }
 
-    /**
-     * @param beneficiary Recipient of the token purchase
-     */
-    function buyTokens(address beneficiary) external payable nonReentrant {
+    function buyTokensWithETH() external payable nonReentrant {
+        address beneficiary = msg.sender;
+
         _preValidatePurchase(beneficiary, msg.value);
 
         uint256 swappedAmount = _swapETH(msg.value);
 
-        _forwardFunds(swappedAmount);
+        _forwardAndMint(swappedAmount, beneficiary, DAI);
+    }
 
-        uint256 amountToMint = _getTokenAmount(swappedAmount);
+    function buyTokensWithStableCoin(uint256 amount, IERC20 stableCoin)
+        external
+        nonReentrant
+    {
+        require(acceptedStableCoins[stableCoin] == true, "Token not accepted");
+
+        address beneficiary = msg.sender;
+
+        _preValidatePurchase(beneficiary, amount);
+
+        stableCoin.safeTransferFrom(beneficiary, address(this), amount);
+
+        _forwardAndMint(amount, beneficiary, stableCoin);
+    }
+
+    function _forwardAndMint(
+        uint256 amount,
+        address beneficiary,
+        IERC20 withToken
+    ) private {
+        _forwardToken(amount, withToken);
+
+        uint256 amountToMint = _getTokenAmount(amount);
 
         // update state
-        _weiRaised = _weiRaised.add(swappedAmount);
+        _weiRaised = _weiRaised.add(amount);
 
         _mint(beneficiary, amountToMint);
 
-        emit TokensMinted(_msgSender(), swappedAmount, amountToMint);
+        emit TokensMinted(_msgSender(), amount, amountToMint);
 
-        _updatePurchasingState(beneficiary, swappedAmount);
+        _updatePurchasingState(beneficiary, amount);
 
-        _postValidatePurchase(beneficiary, swappedAmount);
+        _postValidatePurchase(beneficiary, amount);
     }
 
     /**
@@ -117,13 +146,6 @@ contract Crowdsale is Context, ReentrancyGuard, AccessControl {
      * buyTokens directly when purchasing amountToMint from a contract.
      */
     receive() external payable {}
-
-    /**
-     * @return the token being sold.
-     */
-    function token() public view returns (IERC20) {
-        return _token;
-    }
 
     /**
      * @return the address where funds are collected.
@@ -211,15 +233,29 @@ contract Crowdsale is Context, ReentrancyGuard, AccessControl {
     /**
      * @dev Determines how ETH is stored/forwarded on purchases.
      */
-    function _forwardFunds(uint256 amount) private {
-        IERC20(DAI).transfer(address(_wallet), amount);
+    function _forwardToken(uint256 amount, IERC20 tokenToForward) private {
+        tokenToForward.transfer(address(_wallet), amount);
     }
 
     function _mint(address to, uint256 tokenAmount) private {
-        _token.mint(to, tokenAmount);
+        token.mint(to, tokenAmount);
     }
 
     function _swapETH(uint256 amount) private returns (uint256) {
         return _swap.swapETH{value: amount}();
+    }
+
+    function addAcceptedStableCoin(IERC20 _stableCoin)
+        external
+        onlyRole(MAINTAINER_ROLE)
+    {
+        acceptedStableCoins[_stableCoin] = true;
+    }
+
+    function removeAcceptedStableCoin(IERC20 _stableCoin)
+        external
+        onlyRole(MAINTAINER_ROLE)
+    {
+        acceptedStableCoins[_stableCoin] = false;
     }
 }

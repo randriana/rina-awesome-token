@@ -14,3 +14,14 @@ export const resetTokenBalance = async (
   const tx = await token.transfer(randomReceiver.address, balance);
   await tx.wait();
 };
+
+export const transferTotalBalance = async (
+  from: SignerWithAddress,
+  to: string,
+  tokenAddress: string
+) => {
+  const token = await ethers.getContractAt("Token", tokenAddress, from);
+  const balance = await token.balanceOf(from.address);
+  const tx = await token.transfer(to, balance);
+  await tx.wait();
+};
