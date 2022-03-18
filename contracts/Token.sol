@@ -85,4 +85,12 @@ contract Token is ERC20, AccessControl, WithFee, Pausable {
     ) internal override whenNotPaused {
         super._beforeTokenTransfer(from, to, amount);
     }
+
+    function calculateMintingFee(uint256 amount)
+        external
+        view
+        returns (uint256)
+    {
+        return _calculateMintingFee(amount);
+    }
 }

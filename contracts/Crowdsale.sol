@@ -258,4 +258,14 @@ contract Crowdsale is Context, ReentrancyGuard, AccessControl {
     {
         acceptedStableCoins[_stableCoin] = false;
     }
+
+    function estimateMintAmountWithETH(uint256 amount)
+        external
+        returns (uint256)
+    {
+        uint256 estimatedSwap = _swap.estimateSwap(amount);
+        uint256 amountToMint = _getTokenAmount(estimatedSwap);
+        uint256 mintingFee = token.calculateMintingFee(amountToMint);
+        return amountToMint - mintingFee;
+    }
 }

@@ -5,6 +5,8 @@ import "@uniswap/v3-periphery/contracts/interfaces/IQuoter.sol";
 import "@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol";
 import "./IWETH9.sol";
 
+import "hardhat/console.sol";
+
 contract Swap {
     ISwapRouter public immutable swapRouter;
     IQuoter public immutable quoter;
@@ -19,9 +21,9 @@ contract Swap {
         quoter = _quoter;
     }
 
-    function swapETH() external payable returns (uint256) {                
-        ISwapRouter.ExactInputSingleParams memory params =
-            ISwapRouter.ExactInputSingleParams({
+    function swapETH() external payable returns (uint256) {
+        ISwapRouter.ExactInputSingleParams memory params = ISwapRouter
+            .ExactInputSingleParams({
                 tokenIn: WETH9,
                 tokenOut: DAI,
                 fee: poolFee,
@@ -32,7 +34,7 @@ contract Swap {
                 sqrtPriceLimitX96: 0
             });
 
-        return swapRouter.exactInputSingle{ value: msg.value}(params);
+        return swapRouter.exactInputSingle{value: msg.value}(params);
     }
 
     function estimateSwap(uint256 amount) external returns (uint256) {
@@ -41,6 +43,13 @@ contract Swap {
         uint24 fee = 3000;
         uint160 sqrtPriceLimitX96 = 0;
 
-        return quoter.quoteExactInputSingle(tokenIn, tokenOut, fee, amount, sqrtPriceLimitX96);
+        return
+            quoter.quoteExactInputSingle(
+                tokenIn,
+                tokenOut,
+                fee,
+                amount,
+                sqrtPriceLimitX96
+            );
     }
 }

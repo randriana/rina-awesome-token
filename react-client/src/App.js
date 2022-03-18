@@ -2,7 +2,7 @@ import logo from './logo.svg';
 import './App.css';
 import { ethers } from 'ethers';
 import { useEffect, useState } from 'react';
-import { TokenAbi, CrowdsaleAbi } from './abis';
+import { TokenAbi, CrowdsaleAbi, SwapAbi } from './abis';
 import AWEC from './assets/awesome-coin-logo.png';
 import LOGO from './assets/AWESOME_COIN.png';
 import WalletList from './components/wallet-list';
@@ -11,8 +11,9 @@ import SubmittedModal from './components/submitted-modal';
 
 const provider = new ethers.providers.Web3Provider(window.ethereum)
 
-const RinaTokenAddress = '0x5fbdb2315678afecb367f032d93f642f64180aa3';
-const TokenSaleAddress = '0xe7f1725e7734ce288f8367e1bb143e90bb3f0512';
+const RinaTokenAddress = '0xc735d718c743aa55f11dc6c9682982197bea4f44';
+const TokenSaleAddress = '0x45b9f482e79d84770f0abe003d7510b841b0ebe0';
+const SwapAddress = '0x1b02d5386527110542dba906cd6a107ef9789d9b';
 
 function App() {
   const [signer, setSigner] = useState(null);
@@ -20,16 +21,23 @@ function App() {
   const [accountRinaTokenBalance, setAccountRinaTokenBalance] = useState(null);
   const [signerAddress, setSignerAddress] = useState(null);
   const [rinaToken, setRinaToken] = useState(null);
+  const [swap, setSwap] = useState(null);
   const [tokenSale, setTokenSale] = useState(null);
   const [buyAmount, setBuyAmount] = useState(0);
   const [connected, setConnected] = useState(false);
   const [successModal, setSuccessModal] = useState(false);
   const [submittedModal, setSubmittedModal] = useState(false);
   const [rate, setRate] = useState(null);
+  const [timeoutState, setTimeoutState] = useState(null);
+  const [estimatedSwap, setEstimatedSwap] = useState(null);
+  const [loadingEstimatedSwap, setLoadingEstimatedSwap] = useState(false);
 
   useEffect(() => {
     const token = new ethers.Contract(RinaTokenAddress, TokenAbi, provider);
     setRinaToken(token);
+
+    const swap = new ethers.Contract(SwapAddress, SwapAbi, provider);
+    setSwap(swap);
   }, []);
 
   const onConnectWallet = async () => {
@@ -60,14 +68,30 @@ function App() {
     setAccountRinaTokenBalance(ethers.utils.formatEther(result));
   }
 
+  const getEstimateSwap = async (amount) => {
+    if (timeoutState !== null) {
+      clearTimeout(timeoutState);
+    }
+
+    setLoadingEstimatedSwap(true);
+
+    setTimeoutState(setTimeout(() => {
+      tokenSale.callStatic.estimateMintAmountWithETH(ethers.utils.parseEther(amount)).then((data) => {
+        setEstimatedSwap(ethers.utils.formatEther(data));
+        setLoadingEstimatedSwap(false);
+      }).catch((err) => console.log(err));
+    }, 1000));
+
+
+  }
+
   const buyTokens = async () => {
-    const tx = await tokenSale.buyTokens(signerAddress, {
+    const tx = await tokenSale.buyTokensWithETH({
       value: ethers.utils.parseEther(buyAmount)
     });
-    
+
     setSubmittedModal(true);
     await tx.wait();
-    console.log('hahah')
 
     await getAccountBalance(signerAddress);
     await getAccountRinaTokenBalance(signerAddress);
@@ -100,6 +124,7 @@ function App() {
 
   const onChangeAmount = (v) => {
     setBuyAmount(v);
+    getEstimateSwap(v);
   }
 
   return (
@@ -132,15 +157,15 @@ function App() {
                       <input type="text" className='relative rounded-2xl appearance-none outline-0 text-2xl' onChange={e => onChangeAmount(e.target.value)} value={buyAmount} />
                       <span className='flex items-center font-semibold text-2xl text-stone-800'>ETH</span>
                     </div>
-                    {buyAmount > 0 && <span className='pl-2 text-sm font-bold'>= {rate*buyAmount} RISC</span>} 
-                  </div>                  
+                    {buyAmount > 0 && <span className='pl-2 text-sm font-bold'>= {loadingEstimatedSwap ? '~' : (rate * estimatedSwap)} RISC</span>}
+                  </div>
                   <button onClick={async () => await buyTokens()} className="h-10 w-36 px-2 rounded-2xl text-white bg-persimmon border-2 font-bold mt-5">BUY</button>
                 </div></>
             )}
         </div>
       </div>
       <ConfirmationModal tokenBalance={accountRinaTokenBalance} isOpen={successModal && !submittedModal} closeModal={() => setSuccessModal(false)} />
-      <SubmittedModal isOpen={submittedModal} closeModal={() => setSubmittedModal(false)}/>
+      <SubmittedModal isOpen={submittedModal} closeModal={() => setSubmittedModal(false)} />
     </div>
   );
 }
