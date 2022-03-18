@@ -268,4 +268,14 @@ contract Crowdsale is Context, ReentrancyGuard, AccessControl {
         uint256 mintingFee = token.calculateMintingFee(amountToMint);
         return amountToMint - mintingFee;
     }
+
+    function estimateMintAmountWithStableCoin(uint256 amount)
+        external
+        view
+        returns (uint256)
+    {
+        uint256 amountToMint = _getTokenAmount(amount);
+        uint256 mintingFee = token.calculateMintingFee(amountToMint);
+        return amountToMint - mintingFee;
+    }
 }

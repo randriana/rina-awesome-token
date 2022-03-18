@@ -8,12 +8,15 @@ import LOGO from './assets/AWESOME_COIN.png';
 import WalletList from './components/wallet-list';
 import ConfirmationModal from './components/confirmation-modal';
 import SubmittedModal from './components/submitted-modal';
+import CoinChoiceDropDown from './components/coin-choice-dropdown';
 
 const provider = new ethers.providers.Web3Provider(window.ethereum)
 
 const RinaTokenAddress = '0xc735d718c743aa55f11dc6c9682982197bea4f44';
 const TokenSaleAddress = '0x45b9f482e79d84770f0abe003d7510b841b0ebe0';
 const SwapAddress = '0x1b02d5386527110542dba906cd6a107ef9789d9b';
+
+const coinList = [{ name: "DAI", address: "0x6B175474E89094C44Da98b954EedeAC495271d0F", isStableCoin: true }, { name: "USDC", address: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48", isStableCoin: true }, { name: "ETH", isStableCoin: false }];
 
 function App() {
   const [signer, setSigner] = useState(null);
@@ -31,6 +34,7 @@ function App() {
   const [timeoutState, setTimeoutState] = useState(null);
   const [estimatedSwap, setEstimatedSwap] = useState(null);
   const [loadingEstimatedSwap, setLoadingEstimatedSwap] = useState(false);
+  const [selectedCoin, setSelectedCoin] = useState(coinList[0]);
 
   useEffect(() => {
     const token = new ethers.Contract(RinaTokenAddress, TokenAbi, provider);
@@ -68,27 +72,30 @@ function App() {
     setAccountRinaTokenBalance(ethers.utils.formatEther(result));
   }
 
-  const getEstimateSwap = async (amount) => {
-    if (timeoutState !== null) {
-      clearTimeout(timeoutState);
-    }
-
-    setLoadingEstimatedSwap(true);
-
-    setTimeoutState(setTimeout(() => {
-      tokenSale.callStatic.estimateMintAmountWithETH(ethers.utils.parseEther(amount)).then((data) => {
+  const getEstimateSwap = (amount, _selectedCoin) => {
+    if (_selectedCoin.isStableCoin) {
+      tokenSale.callStatic.estimateMintAmountWithStableCoin(ethers.utils.parseEther(amount)).then((data) => {
         setEstimatedSwap(ethers.utils.formatEther(data));
         setLoadingEstimatedSwap(false);
       }).catch((err) => console.log(err));
-    }, 1000));
+      return;
+    }
 
-
+    tokenSale.callStatic.estimateMintAmountWithETH(ethers.utils.parseEther(amount)).then((data) => {
+      setEstimatedSwap(ethers.utils.formatEther(data));
+      setLoadingEstimatedSwap(false);
+    }).catch((err) => console.log(err));
   }
 
   const buyTokens = async () => {
-    const tx = await tokenSale.buyTokensWithETH({
-      value: ethers.utils.parseEther(buyAmount)
-    });
+    let tx;
+    if (selectedCoin.isStableCoin) {
+      tx = await tokenSale.buyTokensWithStableCoin(ethers.utils.parseEther(buyAmount), selectedCoin.address);
+    } else {
+      tx = await tokenSale.buyTokensWithETH({
+        value: ethers.utils.parseEther(buyAmount)
+      });
+    }
 
     setSubmittedModal(true);
     await tx.wait();
@@ -124,7 +131,27 @@ function App() {
 
   const onChangeAmount = (v) => {
     setBuyAmount(v);
-    getEstimateSwap(v);
+
+    if (timeoutState !== null) {
+      clearTimeout(timeoutState);
+    }
+
+    setLoadingEstimatedSwap(true);
+
+    setTimeoutState(setTimeout(() => {
+      getEstimateSwap(v, selectedCoin);
+    }, 1000));
+  }
+
+  const onChangeSelectedCoin = (c) => {
+    getEstimateSwap(buyAmount, c);
+    setSelectedCoin(c);
+  }
+
+  const setAllowance = async () => {
+    const token = new ethers.Contract(selectedCoin.address, TokenAbi, signer);
+    const tx = await token.approve(tokenSale.address, ethers.constants.MaxUint256);
+    await tx.wait();
   }
 
   return (
@@ -153,12 +180,15 @@ function App() {
               </div>
                 <div className='pt-3'>
                   <div>
-                    <div className='flex justify-between px-4 w-full border-2 border-stone-500 rounded-2xl h-12 bg-white relative'>
+                    <div className='flex justify-between pl-4 pr-3 w-full border-2 border-stone-500 rounded-2xl h-12 bg-white relative'>
                       <input type="text" className='relative rounded-2xl appearance-none outline-0 text-2xl' onChange={e => onChangeAmount(e.target.value)} value={buyAmount} />
-                      <span className='flex items-center font-semibold text-2xl text-stone-800'>ETH</span>
+                      <span className='flex items-center font-semibold text-2xl text-stone-800'>
+                        <CoinChoiceDropDown coinList={coinList} selectedCoin={selectedCoin} setSelectedCoin={(c) => onChangeSelectedCoin(c)} />
+                      </span>
                     </div>
                     {buyAmount > 0 && <span className='pl-2 text-sm font-bold'>= {loadingEstimatedSwap ? '~' : (rate * estimatedSwap)} RISC</span>}
                   </div>
+                  {selectedCoin.isStableCoin && <button onClick={async () => await setAllowance()} className="h-10 w-36 px-2 rounded-2xl text-white bg-persimmon border-2 font-bold mt-5">ALLOW</button>}
                   <button onClick={async () => await buyTokens()} className="h-10 w-36 px-2 rounded-2xl text-white bg-persimmon border-2 font-bold mt-5">BUY</button>
                 </div></>
             )}

@@ -18,3 +18,5 @@ export const TOKEN_MINTING_FEE = 0.03;
 export const TOKEN_TRANSFER_FEE = 0;
 export const TOKEN_MINTING_TYPE = TokenFeeType.Percentage;
 export const TOKEN_TRANSFER_TYPE = TokenFeeType.Fixed;
+
+export const DAI_ADDRESS = "0x6B175474E89094C44Da98b954EedeAC495271d0F";
