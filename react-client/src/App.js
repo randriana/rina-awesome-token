@@ -4,7 +4,7 @@ import { ethers } from 'ethers';
 import { useEffect, useState } from 'react';
 import { TokenAbi, CrowdsaleAbi, SwapAbi } from './abis';
 import AWEC from './assets/awesome-coin-logo.png';
-import LOGO from './assets/AWESOME_COIN.png';
+import LOGO from './assets/bustad_coin.png';
 import WalletList from './components/wallet-list';
 import ConfirmationModal from './components/confirmation-modal';
 import SubmittedModal from './components/submitted-modal';
@@ -113,7 +113,7 @@ function App() {
         type: 'ERC20', // Initially only supports ERC20, but eventually more!
         options: {
           address: RinaTokenAddress, // The address that the token is at.
-          symbol: 'RISC', // A ticker symbol or shorthand, up to 5 chars.
+          symbol: 'BUC', // A ticker symbol or shorthand, up to 5 chars.
           decimals: 18, // The number of decimals in the token
           image: 'data:image/png;base64,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', // A string url of the token logo
         },
@@ -174,7 +174,7 @@ function App() {
                 <button onClick={addToMetaMask} className='flex items-center border-2 border-stone-600 rounded-lg px-2 py-1 ml-2 hover:bg-slate-200'>
                   <img src={AWEC} className='w-4 mr-1' />
                   <span className=''>
-                    {accountRinaTokenBalance} RISC
+                    {accountRinaTokenBalance} BUC
                   </span>
                 </button>
               </div>
