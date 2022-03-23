@@ -2,11 +2,9 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { expect } from "chai";
 import { Contract } from "ethers";
 import { ethers } from "hardhat";
+import { getExternalContract } from "../utils/helpers";
 import { fromEther, toEther } from "./utils/format";
-
-const DAIaddress = "0x6B175474E89094C44Da98b954EedeAC495271d0F";
-const SwapRouter = "0xE592427A0AEce92De3Edee1F18E0157C05861564";
-const Quoter = "0xb27308f9F90D607463bb33eA1BeBb41C27CE5AB6";
+import { SWAP_POOL_FEE } from "../helper-hardhat-config";
 
 describe("Swap", function () {
   let swap;
@@ -20,9 +18,23 @@ describe("Swap", function () {
     const Swap = await ethers.getContractFactory("Swap", owner);
 
     const Token = await ethers.getContractFactory("Token");
-    dai = await Token.attach(DAIaddress);
 
-    swap = await Swap.deploy(SwapRouter, Quoter);
+    const daiAddress = getExternalContract("DAI", "hardhat");
+    const swapRouterAddress = getExternalContract("SwapRouter", "hardhat");
+    const quoterAddress = getExternalContract("Quoter", "hardhat");
+    const usdcAddress = getExternalContract("USDC", "hardhat");
+    const weth9Address = getExternalContract("WETH9", "hardhat");
+
+    dai = await Token.attach(daiAddress!);
+
+    swap = await Swap.deploy(
+      swapRouterAddress,
+      quoterAddress,
+      daiAddress,
+      usdcAddress,
+      weth9Address,
+      SWAP_POOL_FEE
+    );
 
     await swap.deployed();
 

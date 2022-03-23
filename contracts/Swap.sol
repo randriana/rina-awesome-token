@@ -11,14 +11,26 @@ contract Swap {
     ISwapRouter public immutable swapRouter;
     IQuoter public immutable quoter;
     address beneficiary;
-    address public constant DAI = 0x6B175474E89094C44Da98b954EedeAC495271d0F;
-    address public constant WETH9 = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
+    address public immutable DAI;
+    address public immutable USDC;
+    address public immutable WETH9;
 
-    uint24 public constant poolFee = 3000;
+    uint24 public poolFee;
 
-    constructor(ISwapRouter _swapRouter, IQuoter _quoter) {
+    constructor(
+        ISwapRouter _swapRouter,
+        IQuoter _quoter,
+        address _dai,
+        address _usdc,
+        address _weth9,
+        uint24 _poolFee
+    ) {
         swapRouter = _swapRouter;
         quoter = _quoter;
+        DAI = _dai;
+        USDC = _usdc;
+        WETH9 = _weth9;
+        poolFee = _poolFee;
     }
 
     function swapETH() external payable returns (uint256) {

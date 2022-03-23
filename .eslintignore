@@ -2,3 +2,4 @@ node_modules
 artifacts
 cache
 coverage
+helper-hardhat-config.ts

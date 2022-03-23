@@ -1,19 +1,31 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
-
-const SwapRouter = "0xE592427A0AEce92De3Edee1F18E0157C05861564";
-const Quoter = "0xb27308f9F90D607463bb33eA1BeBb41C27CE5AB6";
+import { getExternalContract } from "../utils/helpers";
+import { SWAP_POOL_FEE } from "../helper-hardhat-config";
 
 const deploySwap: DeployFunction = async function (
   hre: HardhatRuntimeEnvironment
 ) {
-  const { getNamedAccounts, deployments } = hre;
+  const { getNamedAccounts, deployments, network } = hre;
+
+  const daiContract = getExternalContract("DAI", network.name);
+  const usdcContract = getExternalContract("USDC", network.name);
+  const weth9Contract = getExternalContract("WETH9", network.name);
+  const swapRouterContract = getExternalContract("SwapRouter", network.name);
+  const quoterContract = getExternalContract("Quoter", network.name);
 
   const { deploy } = deployments;
   const { admin } = await getNamedAccounts();
   await deploy("Swap", {
     from: admin,
-    args: [SwapRouter, Quoter],
+    args: [
+      swapRouterContract,
+      quoterContract,
+      daiContract,
+      usdcContract,
+      weth9Contract,
+      SWAP_POOL_FEE,
+    ],
     log: true,
     waitConfirmations: 1,
   });

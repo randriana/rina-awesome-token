@@ -12,9 +12,9 @@ import CoinChoiceDropDown from './components/coin-choice-dropdown';
 
 const provider = new ethers.providers.Web3Provider(window.ethereum)
 
-const RinaTokenAddress = '0xc735d718c743aa55f11dc6c9682982197bea4f44';
-const TokenSaleAddress = '0x45b9f482e79d84770f0abe003d7510b841b0ebe0';
-const SwapAddress = '0x1b02d5386527110542dba906cd6a107ef9789d9b';
+const RinaTokenAddress = '0xc735d718c743Aa55F11DC6C9682982197BEA4f44';
+const TokenSaleAddress = '0x45B9F482e79D84770f0AbE003D7510b841b0EbE0';
+const SwapAddress = '0x1b02D5386527110542DbA906CD6a107eF9789D9B';
 
 const coinList = [{ name: "DAI", address: "0x6B175474E89094C44Da98b954EedeAC495271d0F", isStableCoin: true }, { name: "USDC", address: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48", isStableCoin: true }, { name: "ETH", isStableCoin: false }];
 

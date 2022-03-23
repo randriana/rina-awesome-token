@@ -5,10 +5,12 @@
 // Runtime Environment's members available in the global scope.
 import { ethers } from "hardhat";
 import { transferTotalBalance } from "../test/utils/utils";
-import { DAI_ADDRESS } from "../helper-hardhat-config";
+import { getExternalContract } from "../utils/helpers";
 
 async function main() {
   const signers = await ethers.getSigners();
+
+  const DAI_ADDRESS = getExternalContract("DAI", "mainnet")!;
 
   await transferTotalBalance(signers[1], signers[2].address, DAI_ADDRESS);
 }
