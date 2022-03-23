@@ -21,29 +21,24 @@ task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
   }
 });
 
-// You need to export an object to set up your config
-// Go to https://hardhat.org/config/ to learn more
+const accounts = [
+  process.env.PERSONAL_PRIVATE_KEY || "",
+  process.env.HORDE_PRIVATE_KEY || "",
+  process.env.MOCK_USER_PRIVATE_KEY || "",
+];
 
 const config: HardhatUserConfig = {
   solidity: "0.8.4",
   networks: {
     ropsten: {
       url: process.env.ROPSTEN_URI !== undefined ? process.env.ROPSTEN_URI : "",
-      accounts: [
-        process.env.PERSONAL_PRIVATE_KEY || "",
-        process.env.HORDE_PRIVATE_KEY || "",
-        process.env.MOCK_USER_PRIVATE_KEY || "",
-      ],
+      accounts: accounts,
       gas: 2100000,
       gasPrice: 8000000000,
     },
     rinkeby: {
       url: process.env.RINKEBY_URI !== undefined ? process.env.RINKEBY_URI : "",
-      accounts: [
-        process.env.PERSONAL_PRIVATE_KEY || "",
-        process.env.HORDE_PRIVATE_KEY || "",
-        process.env.MOCK_USER_PRIVATE_KEY || "",
-      ],
+      accounts: accounts,
     },
     localhost: {
       gas: 2100000,
@@ -55,20 +50,10 @@ const config: HardhatUserConfig = {
         url: process.env.FORK_URI !== undefined ? process.env.FORK_URI : "",
         blockNumber: 14306438,
       },
-      accounts: [
-        {
-          privateKey: process.env.PERSONAL_PRIVATE_KEY ?? "",
-          balance: (10 * Math.pow(10, 18)).toString(),
-        },
-        {
-          privateKey: process.env.HORDE_PRIVATE_KEY ?? "",
-          balance: (10 * Math.pow(10, 18)).toString(),
-        },
-        {
-          privateKey: process.env.MOCK_USER_PRIVATE_KEY ?? "",
-          balance: (1 * Math.pow(10, 18)).toString(),
-        },
-      ],
+      accounts: accounts.map((acc) => ({
+        privateKey: acc,
+        balance: (10 * Math.pow(10, 18)).toString(),
+      })),
     },
   },
   gasReporter: {
