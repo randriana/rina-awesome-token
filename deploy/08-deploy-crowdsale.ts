@@ -15,6 +15,7 @@ const deployCrowdsale: DeployFunction = async function (
   const treasury = await get("Treasury");
 
   const daiContract = getExternalContract("DAI", network.name);
+  const usdcContract = getExternalContract("USDC", network.name);
 
   await deploy("Crowdsale", {
     from: admin,
@@ -25,6 +26,7 @@ const deployCrowdsale: DeployFunction = async function (
       token.address,
       swap.address,
       ethers.constants.WeiPerEther,
+      [daiContract, usdcContract],
     ],
     log: true,
     waitConfirmations: 1,

@@ -25,7 +25,7 @@ contract Crowdsale is Context, ReentrancyGuard, AccessControl {
 
     bytes32 public constant MAINTAINER_ROLE = keccak256("MAINTAINER_ROLE");
 
-    mapping(IERC20 => bool) acceptedStableCoins;
+    mapping(address => bool) acceptedStableCoins;
 
     uint256 public weiRaised;
     uint256 public rate;
@@ -36,13 +36,17 @@ contract Crowdsale is Context, ReentrancyGuard, AccessControl {
         uint256 amount
     );
 
+    event AddAcceptedStableCoin(address indexed coinAddress);
+    event RemoveAcceptedStableCoin(address indexed coinAddress);
+
     constructor(
         address payable _wallet,
         address _treasury,
         address _swapToToken,
         Token _token,
         Swap _swap,
-        uint256 _initialRate
+        uint256 _initialRate,
+        address[] memory _acceptedStableCoins
     ) {
         require(_wallet != address(0), "Wallet is the zero address");
         require(_treasury != address(0), "Treasury is zero address");
@@ -59,10 +63,7 @@ contract Crowdsale is Context, ReentrancyGuard, AccessControl {
 
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
 
-        //Add DAI
-        acceptedStableCoins[
-            IERC20(0x6B175474E89094C44Da98b954EedeAC495271d0F)
-        ] = true;
+        _initializeAcceptableStableCoin(_acceptedStableCoins);
     }
 
     function buyTokensWithETH() external payable nonReentrant {
@@ -72,22 +73,27 @@ contract Crowdsale is Context, ReentrancyGuard, AccessControl {
 
         uint256 swappedAmount = _swapETH(msg.value);
 
-        _forwardAndMint(swappedAmount, beneficiary, DAI);
+        _forwardAndMint(swappedAmount, beneficiary, IERC20(swapToToken));
     }
 
-    function buyTokensWithStableCoin(uint256 amount, IERC20 stableCoin)
+    function buyTokensWithStableCoin(uint256 amount, address stableCoinAddress)
         external
         nonReentrant
     {
-        require(acceptedStableCoins[stableCoin] == true, "Token not accepted");
+        require(
+            acceptedStableCoins[stableCoinAddress] == true,
+            "Token not accepted"
+        );
+
+        IERC20 coin = IERC20(stableCoinAddress);
 
         address beneficiary = msg.sender;
 
         _preValidatePurchase(beneficiary, amount);
 
-        stableCoin.safeTransferFrom(beneficiary, address(this), amount);
+        coin.safeTransferFrom(beneficiary, address(this), amount);
 
-        _forwardAndMint(amount, beneficiary, stableCoin);
+        _forwardAndMint(amount, beneficiary, coin);
     }
 
     function _forwardAndMint(
@@ -190,18 +196,20 @@ contract Crowdsale is Context, ReentrancyGuard, AccessControl {
         return swap.swapETH{value: amount}(swapToToken);
     }
 
-    function addAcceptedStableCoin(IERC20 _stableCoin)
+    function addAcceptedStableCoin(address _stableCoin)
         external
         onlyRole(MAINTAINER_ROLE)
     {
         acceptedStableCoins[_stableCoin] = true;
+        emit AddAcceptedStableCoin(_stableCoin);
     }
 
-    function removeAcceptedStableCoin(IERC20 _stableCoin)
+    function removeAcceptedStableCoin(address _stableCoin)
         external
         onlyRole(MAINTAINER_ROLE)
     {
         acceptedStableCoins[_stableCoin] = false;
+        emit RemoveAcceptedStableCoin(_stableCoin);
     }
 
     function estimateMintAmountWithETH(uint256 amount)
@@ -226,5 +234,18 @@ contract Crowdsale is Context, ReentrancyGuard, AccessControl {
 
     function setSwapToToken(address _token) external onlyRole(MAINTAINER_ROLE) {
         swapToToken = _token;
+    }
+
+    function isAcceptableStableCoin(address coin) external view returns (bool) {
+        return acceptedStableCoins[coin];
+    }
+
+    function _initializeAcceptableStableCoin(address[] memory addresses)
+        private
+    {
+        for (uint8 i = 0; i < addresses.length; i++) {
+            acceptedStableCoins[addresses[i]] = true;
+            emit AddAcceptedStableCoin(addresses[i]);
+        }
     }
 }
