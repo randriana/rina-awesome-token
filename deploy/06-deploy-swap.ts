@@ -8,8 +8,6 @@ const deploySwap: DeployFunction = async function (
 ) {
   const { getNamedAccounts, deployments, network } = hre;
 
-  const daiContract = getExternalContract("DAI", network.name);
-  const usdcContract = getExternalContract("USDC", network.name);
   const weth9Contract = getExternalContract("WETH9", network.name);
   const swapRouterContract = getExternalContract("SwapRouter", network.name);
   const quoterContract = getExternalContract("Quoter", network.name);
@@ -18,14 +16,7 @@ const deploySwap: DeployFunction = async function (
   const { admin } = await getNamedAccounts();
   await deploy("Swap", {
     from: admin,
-    args: [
-      swapRouterContract,
-      quoterContract,
-      daiContract,
-      usdcContract,
-      weth9Contract,
-      SWAP_POOL_FEE,
-    ],
+    args: [swapRouterContract, quoterContract, weth9Contract, SWAP_POOL_FEE],
     log: true,
     waitConfirmations: 1,
   });

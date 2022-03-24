@@ -22,7 +22,6 @@ describe("Swap", function () {
     const daiAddress = getExternalContract("DAI", "hardhat");
     const swapRouterAddress = getExternalContract("SwapRouter", "hardhat");
     const quoterAddress = getExternalContract("Quoter", "hardhat");
-    const usdcAddress = getExternalContract("USDC", "hardhat");
     const weth9Address = getExternalContract("WETH9", "hardhat");
 
     dai = await Token.attach(daiAddress!);
@@ -30,15 +29,13 @@ describe("Swap", function () {
     swap = await Swap.deploy(
       swapRouterAddress,
       quoterAddress,
-      daiAddress,
-      usdcAddress,
       weth9Address,
       SWAP_POOL_FEE
     );
 
     await swap.deployed();
 
-    const tx = await swap.swapETH({
+    const tx = await swap.swapETH(daiAddress, {
       value: fromEther(0.1).toString(),
     });
 

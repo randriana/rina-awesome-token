@@ -1,11 +1,12 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { ethers } from "hardhat";
+import { getExternalContract } from "../utils/helpers";
 
 const deployCrowdsale: DeployFunction = async function (
   hre: HardhatRuntimeEnvironment
 ) {
-  const { getNamedAccounts, deployments } = hre;
+  const { getNamedAccounts, deployments, network } = hre;
 
   const { deploy, get } = deployments;
   const { admin, horde } = await getNamedAccounts();
@@ -13,14 +14,17 @@ const deployCrowdsale: DeployFunction = async function (
   const swap = await get("Swap");
   const treasury = await get("Treasury");
 
+  const daiContract = getExternalContract("DAI", network.name);
+
   await deploy("Crowdsale", {
     from: admin,
     args: [
       horde,
-      token.address,
-      ethers.constants.WeiPerEther,
-      swap.address,
       treasury.address,
+      daiContract,
+      token.address,
+      swap.address,
+      ethers.constants.WeiPerEther,
     ],
     log: true,
     waitConfirmations: 1,

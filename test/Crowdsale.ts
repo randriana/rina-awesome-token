@@ -23,7 +23,7 @@ describe("Crowdsale", () => {
 
   describe("Deployment", () => {
     it("Should have correct rate", async () => {
-      expect(await crowdsale.getRate()).to.equal(fromEther(1));
+      expect(await crowdsale.rate()).to.equal(fromEther(1));
     });
     it("Should have correct token", async () => {
       expect(await crowdsale.token()).to.equal(token.address);
@@ -98,11 +98,11 @@ describe("Crowdsale", () => {
     });
 
     it("Should set new rate", async () => {
-      expect(await crowdsale.getRate()).to.equal(fromEther(1));
+      expect(await crowdsale.rate()).to.equal(fromEther(1));
 
       await crowdsale.setRate(10);
 
-      expect(await crowdsale.getRate()).to.equal(10);
+      expect(await crowdsale.rate()).to.equal(10);
     });
 
     it("Should mint correct number of tokens with new rate", async () => {

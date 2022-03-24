@@ -10,81 +10,52 @@ import "./Swap.sol";
 
 import "hardhat/console.sol";
 
-/**
- * @title Crowdsale
- * @dev Crowdsale is a base contract for managing a token crowdsale,
- * allowing investors to purchase amountToMint with ether. This contract implements
- * such functionality in its most fundamental form and can be extended to provide additional
- * functionality and/or custom behavior.
- * The external interface represents the basic interface for purchasing amountToMint, and conforms
- * the base architecture for crowdsales. It is *not* intended to be modified / overridden.
- * The internal interface conforms the extensible and modifiable surface of crowdsales. Override
- * the methods to add functionality. Consider using 'super' where appropriate to concatenate
- * behavior.
- */
 contract Crowdsale is Context, ReentrancyGuard, AccessControl {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
     Token public token;
+    Swap public swap;
+    IERC20 public constant DAI =
+        IERC20(0x6B175474E89094C44Da98b954EedeAC495271d0F);
 
-    // Address where funds are collected
-    address payable private _wallet;
-
-    // Amount of wei raised
-    uint256 private _weiRaised;
-    uint256 private _rate;
+    address payable public wallet;
+    address public treasury;
+    address public swapToToken;
 
     bytes32 public constant MAINTAINER_ROLE = keccak256("MAINTAINER_ROLE");
 
-    IERC20 public constant DAI =
-        IERC20(0x6B175474E89094C44Da98b954EedeAC495271d0F);
-    address public treasury;
-
     mapping(IERC20 => bool) acceptedStableCoins;
 
-    Swap private _swap;
+    uint256 public weiRaised;
+    uint256 public rate;
 
-    /**
-     * Event for token purchase logging
-     * @param purchaser who paid for the amountToMint
-     * @param value weis paid for purchase
-     * @param amount amount of amountToMint purchased
-     */
     event TokensMinted(
         address indexed purchaser,
         uint256 value,
         uint256 amount
     );
 
-    /**
-     * @dev The rate is the conversion between wei and the smallest and indivisible
-     * token unit. So, if you are using a rate of 1 with a ERC20Detailed token
-     * with 3 decimals called TOK, 1 wei will give you 1 unit, or 0.001 TOK.
-     * @param wallet Address where collected funds will be forwarded to
-     * @param _token Address of the token being sold
-     * @param initialRate Initial rate for token price
-     */
     constructor(
-        address payable wallet,
+        address payable _wallet,
+        address _treasury,
+        address _swapToToken,
         Token _token,
-        uint256 initialRate,
-        Swap swap,
-        address _treasury
+        Swap _swap,
+        uint256 _initialRate
     ) {
-        require(wallet != address(0), "Crowdsale: wallet is the zero address");
-        require(
-            address(_token) != address(0),
-            "Crowdsale: token is the zero address"
-        );
-        require(initialRate > 0, "Rate cannot be 0");
+        require(_wallet != address(0), "Wallet is the zero address");
         require(_treasury != address(0), "Treasury is zero address");
+        require(_swapToToken != address(0), "SwapToToken is the zero address");
+        require(address(_token) != address(0), "Token is the zero address");
+        require(_initialRate > 0, "Rate cannot be 0");
 
-        _wallet = wallet;
+        wallet = _wallet;
         token = _token;
-        _rate = initialRate;
-        _swap = swap;
+        rate = _initialRate;
+        swap = _swap;
         treasury = _treasury;
+        swapToToken = _swapToToken;
 
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
 
@@ -129,7 +100,7 @@ contract Crowdsale is Context, ReentrancyGuard, AccessControl {
         uint256 amountToMint = _getTokenAmount(amount);
 
         // update state
-        _weiRaised = _weiRaised.add(amount);
+        weiRaised = weiRaised.add(amount);
 
         _mint(beneficiary, amountToMint);
 
@@ -140,36 +111,10 @@ contract Crowdsale is Context, ReentrancyGuard, AccessControl {
         _postValidatePurchase(beneficiary, amount);
     }
 
-    /**
-     * Note that other contracts will transfer funds with a base gas stipend
-     * of 2300, which is not enough to call buyTokens. Consider calling
-     * buyTokens directly when purchasing amountToMint from a contract.
-     */
     receive() external payable {}
 
-    /**
-     * @return the address where funds are collected.
-     */
-    function wallet() public view returns (address payable) {
-        return _wallet;
-    }
-
-    /**
-     * @return the number of token units a buyer gets per wei.
-     */
-    function getRate() public view returns (uint256) {
-        return _rate;
-    }
-
     function setRate(uint256 newRate) external onlyRole(MAINTAINER_ROLE) {
-        _rate = newRate;
-    }
-
-    /**
-     * @return the amount of wei raised.
-     */
-    function weiRaised() public view returns (uint256) {
-        return _weiRaised;
+        rate = newRate;
     }
 
     /**
@@ -227,14 +172,14 @@ contract Crowdsale is Context, ReentrancyGuard, AccessControl {
      * @return Number of amountToMint that can be purchased with the specified _weiAmount
      */
     function _getTokenAmount(uint256 weiAmount) private view returns (uint256) {
-        return weiAmount.mul(_rate) / 1 ether;
+        return weiAmount.mul(rate) / 1 ether;
     }
 
     /**
      * @dev Determines how ETH is stored/forwarded on purchases.
      */
     function _forwardToken(uint256 amount, IERC20 tokenToForward) private {
-        tokenToForward.transfer(address(_wallet), amount);
+        tokenToForward.transfer(address(wallet), amount);
     }
 
     function _mint(address to, uint256 tokenAmount) private {
@@ -242,7 +187,7 @@ contract Crowdsale is Context, ReentrancyGuard, AccessControl {
     }
 
     function _swapETH(uint256 amount) private returns (uint256) {
-        return _swap.swapETH{value: amount}();
+        return swap.swapETH{value: amount}(swapToToken);
     }
 
     function addAcceptedStableCoin(IERC20 _stableCoin)
@@ -263,7 +208,7 @@ contract Crowdsale is Context, ReentrancyGuard, AccessControl {
         external
         returns (uint256)
     {
-        uint256 estimatedSwap = _swap.estimateSwap(amount);
+        uint256 estimatedSwap = swap.estimateETHSwap(amount, swapToToken);
         uint256 amountToMint = _getTokenAmount(estimatedSwap);
         uint256 mintingFee = token.calculateMintingFee(amountToMint);
         return amountToMint - mintingFee;
@@ -277,5 +222,9 @@ contract Crowdsale is Context, ReentrancyGuard, AccessControl {
         uint256 amountToMint = _getTokenAmount(amount);
         uint256 mintingFee = token.calculateMintingFee(amountToMint);
         return amountToMint - mintingFee;
+    }
+
+    function setSwapToToken(address _token) external onlyRole(MAINTAINER_ROLE) {
+        swapToToken = _token;
     }
 }
