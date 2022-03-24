@@ -14,7 +14,6 @@ const provider = new ethers.providers.Web3Provider(window.ethereum)
 
 const RinaTokenAddress = '0xc735d718c743Aa55F11DC6C9682982197BEA4f44';
 const TokenSaleAddress = '0x45B9F482e79D84770f0AbE003D7510b841b0EbE0';
-const SwapAddress = '0x1b02D5386527110542DbA906CD6a107eF9789D9B';
 
 const coinList = [{ name: "DAI", address: "0x6B175474E89094C44Da98b954EedeAC495271d0F", isStableCoin: true }, { name: "USDC", address: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48", isStableCoin: true }, { name: "ETH", isStableCoin: false }];
 
@@ -24,7 +23,6 @@ function App() {
   const [accountRinaTokenBalance, setAccountRinaTokenBalance] = useState(null);
   const [signerAddress, setSignerAddress] = useState(null);
   const [rinaToken, setRinaToken] = useState(null);
-  const [swap, setSwap] = useState(null);
   const [tokenSale, setTokenSale] = useState(null);
   const [buyAmount, setBuyAmount] = useState(0);
   const [connected, setConnected] = useState(false);
@@ -39,9 +37,6 @@ function App() {
   useEffect(() => {
     const token = new ethers.Contract(RinaTokenAddress, TokenAbi, provider);
     setRinaToken(token);
-
-    const swap = new ethers.Contract(SwapAddress, SwapAbi, provider);
-    setSwap(swap);
   }, []);
 
   const onConnectWallet = async () => {
@@ -56,7 +51,7 @@ function App() {
     const ts = new ethers.Contract(TokenSaleAddress, CrowdsaleAbi, s);
     setTokenSale(ts);
 
-    const r = await ts.getRate();
+    const r = await ts.rate();
     setRate(ethers.utils.formatEther(r));
 
     setConnected(true);
