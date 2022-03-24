@@ -649,7 +649,17 @@ export const CrowdsaleAbi = [
     "inputs": [
       {
         "internalType": "address payable",
-        "name": "wallet",
+        "name": "_wallet",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "_treasury",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "_swapToToken",
         "type": "address"
       },
       {
@@ -658,23 +668,49 @@ export const CrowdsaleAbi = [
         "type": "address"
       },
       {
+        "internalType": "contract Swap",
+        "name": "_swap",
+        "type": "address"
+      },
+      {
         "internalType": "uint256",
-        "name": "initialRate",
+        "name": "_initialRate",
         "type": "uint256"
       },
       {
-        "internalType": "contract Swap",
-        "name": "swap",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "_treasury",
-        "type": "address"
+        "internalType": "address[]",
+        "name": "_acceptedStableCoins",
+        "type": "address[]"
       }
     ],
     "stateMutability": "nonpayable",
     "type": "constructor"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "coinAddress",
+        "type": "address"
+      }
+    ],
+    "name": "AddAcceptedStableCoin",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "coinAddress",
+        "type": "address"
+      }
+    ],
+    "name": "RemoveAcceptedStableCoin",
+    "type": "event"
   },
   {
     "anonymous": false,
@@ -818,7 +854,7 @@ export const CrowdsaleAbi = [
   {
     "inputs": [
       {
-        "internalType": "contract IERC20",
+        "internalType": "address",
         "name": "_stableCoin",
         "type": "address"
       }
@@ -843,8 +879,8 @@ export const CrowdsaleAbi = [
         "type": "uint256"
       },
       {
-        "internalType": "contract IERC20",
-        "name": "stableCoin",
+        "internalType": "address",
+        "name": "stableCoinAddress",
         "type": "address"
       }
     ],
@@ -881,19 +917,6 @@ export const CrowdsaleAbi = [
       }
     ],
     "name": "estimateMintAmountWithStableCoin",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "getRate",
     "outputs": [
       {
         "internalType": "uint256",
@@ -968,7 +991,39 @@ export const CrowdsaleAbi = [
   {
     "inputs": [
       {
-        "internalType": "contract IERC20",
+        "internalType": "address",
+        "name": "coin",
+        "type": "address"
+      }
+    ],
+    "name": "isAcceptableStableCoin",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "rate",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
         "name": "_stableCoin",
         "type": "address"
       }
@@ -1030,6 +1085,19 @@ export const CrowdsaleAbi = [
   {
     "inputs": [
       {
+        "internalType": "address",
+        "name": "_token",
+        "type": "address"
+      }
+    ],
+    "name": "setSwapToToken",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
         "internalType": "bytes4",
         "name": "interfaceId",
         "type": "bytes4"
@@ -1041,6 +1109,32 @@ export const CrowdsaleAbi = [
         "internalType": "bool",
         "name": "",
         "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "swap",
+    "outputs": [
+      {
+        "internalType": "contract Swap",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "swapToToken",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
       }
     ],
     "stateMutability": "view",
@@ -1101,121 +1195,5 @@ export const CrowdsaleAbi = [
   {
     "stateMutability": "payable",
     "type": "receive"
-  }
-];
-
-export const SwapAbi = [
-  {
-    "inputs": [
-      {
-        "internalType": "contract ISwapRouter",
-        "name": "_swapRouter",
-        "type": "address"
-      },
-      {
-        "internalType": "contract IQuoter",
-        "name": "_quoter",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "nonpayable",
-    "type": "constructor"
-  },
-  {
-    "inputs": [],
-    "name": "DAI",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "WETH9",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "amount",
-        "type": "uint256"
-      }
-    ],
-    "name": "estimateSwap",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "poolFee",
-    "outputs": [
-      {
-        "internalType": "uint24",
-        "name": "",
-        "type": "uint24"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "quoter",
-    "outputs": [
-      {
-        "internalType": "contract IQuoter",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "swapETH",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "payable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "swapRouter",
-    "outputs": [
-      {
-        "internalType": "contract ISwapRouter",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
   }
 ];

@@ -10,9 +10,13 @@ import "./Swap.sol";
 
 import "hardhat/console.sol";
 
+abstract contract IERC20Extented is IERC20 {
+    function decimals() public view virtual returns (uint8);
+}
+
 contract Crowdsale is Context, ReentrancyGuard, AccessControl {
     using SafeMath for uint256;
-    using SafeERC20 for IERC20;
+    using SafeERC20 for IERC20Extented;
 
     Token public token;
     Swap public swap;
@@ -73,48 +77,55 @@ contract Crowdsale is Context, ReentrancyGuard, AccessControl {
 
         uint256 swappedAmount = _swapETH(msg.value);
 
-        _forwardAndMint(swappedAmount, beneficiary, IERC20(swapToToken));
+        _forwardAndMint(
+            swappedAmount,
+            swappedAmount,
+            beneficiary,
+            IERC20(swapToToken)
+        );
     }
 
-    function buyTokensWithStableCoin(uint256 amount, address stableCoinAddress)
-        external
-        nonReentrant
-    {
+    function buyTokensWithStableCoin(
+        uint256 amount18based,
+        address stableCoinAddress
+    ) external nonReentrant {
         require(
             acceptedStableCoins[stableCoinAddress] == true,
             "Token not accepted"
         );
 
-        IERC20 coin = IERC20(stableCoinAddress);
+        IERC20Extented coin = IERC20Extented(stableCoinAddress);
 
         address beneficiary = msg.sender;
 
-        _preValidatePurchase(beneficiary, amount);
+        _preValidatePurchase(beneficiary, amount18based);
 
-        coin.safeTransferFrom(beneficiary, address(this), amount);
+        uint256 coinAmount = _toCoinAmount(amount18based, coin);
 
-        _forwardAndMint(amount, beneficiary, coin);
+        coin.safeTransferFrom(beneficiary, address(this), coinAmount);
+
+        _forwardAndMint(coinAmount, amount18based, beneficiary, coin);
     }
 
     function _forwardAndMint(
-        uint256 amount,
+        uint256 coinAmount,
+        uint256 amount18based,
         address beneficiary,
         IERC20 withToken
     ) private {
-        _forwardToken(amount, withToken);
+        _forwardToken(coinAmount, withToken);
 
-        uint256 amountToMint = _getTokenAmount(amount);
-
-        // update state
-        weiRaised = weiRaised.add(amount);
+        uint256 amountToMint = _getTokenAmount(amount18based);
 
         _mint(beneficiary, amountToMint);
 
-        emit TokensMinted(_msgSender(), amount, amountToMint);
+        weiRaised = weiRaised.add(amount18based);
 
-        _updatePurchasingState(beneficiary, amount);
+        emit TokensMinted(_msgSender(), amount18based, amountToMint);
 
-        _postValidatePurchase(beneficiary, amount);
+        _updatePurchasingState(beneficiary, amount18based);
+
+        _postValidatePurchase(beneficiary, amount18based);
     }
 
     receive() external payable {}
@@ -247,5 +258,19 @@ contract Crowdsale is Context, ReentrancyGuard, AccessControl {
             acceptedStableCoins[addresses[i]] = true;
             emit AddAcceptedStableCoin(addresses[i]);
         }
+    }
+
+    /**
+     * @dev Converts from 18 based decimal system to another coins decimal value.
+     * Ex. USDC has decimal = 6, and needs to be treated as such.
+     * @param amount original amount in wei
+     * @param coin coin with decimal value
+     */
+    function _toCoinAmount(uint256 amount, IERC20Extented coin)
+        private
+        view
+        returns (uint256)
+    {
+        return (amount / 1e18) * (10**coin.decimals());
     }
 }
